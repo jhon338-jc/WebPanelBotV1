@@ -8,7 +8,7 @@ ke orang lain via link publik (Cloudflare Tunnel).
 - Pairing / kode pairing otomatis
 - Log real-time per bot
 - Logout bot (hapus auth → wajib pairing ulang)
-- Multi-user: admin, reseller, member + quota bot
+- Multi-user: admin, premium, langganan, member + quota bot
 - Akses publik via link Cloudflare Tunnel
 
 ## Cara Pakai di Termux

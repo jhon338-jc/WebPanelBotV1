@@ -23,13 +23,15 @@ export class UserController {
                     pairingCode: status.pairingCode
                 }
             })
-            const availableBots = Bot.getAvailableBots().length
+            const availableBotList = Bot.getAvailableBots().map(b => ({ id: b.id, folder: b.folder }))
+            const availableBots = availableBotList.length
 
-            if (req.path.startsWith('/api/')) {
+            if (req.baseUrl.startsWith('/api')) {
                 return res.json({
                     success: true,
                     myBots,
                     availableBots,
+                    availableBotList,
                     botQuota: req.user.bot_quota
                 })
             }
@@ -38,6 +40,7 @@ export class UserController {
                 title: 'Dashboard',
                 myBots,
                 availableBots,
+                availableBotList,
                 botQuota: req.user.bot_quota
             })
         } catch (e) {
@@ -56,6 +59,10 @@ export class UserController {
             if (!botId) {
                 if (req.query.redirect) return redirectBack(req, res, 'Pilih bot untuk di-assign')
                 return res.status(400).json({ success: false, message: 'Pilih bot!' })
+            }
+            if (req.user.bot_quota <= 0) {
+                if (req.query.redirect) return redirectBack(req, res, 'Quota habis! Hubungi admin untuk menambah quota.')
+                return res.status(400).json({ success: false, message: 'Quota habis! Hubungi admin untuk menambah quota.' })
             }
             if (myBots.length >= req.user.bot_quota) {
                 if (req.query.redirect) return redirectBack(req, res, 'Quota penuh!')
@@ -94,7 +101,8 @@ export class UserController {
             }
 
             Bot.releaseBot(bot.id)
-            return redirectBack(req, res, `Bot ${bot.folder} dilepas!`)
+            User.adjustQuota(req.user.id, -1)
+            return redirectBack(req, res, `Bot ${bot.folder} dilepas. Quota berkurang 1!`)
         } catch (e) {
             if (req.query.redirect) return redirectBack(req, res, 'Server error')
             return res.status(500).json({ success: false, message: 'Server error' })
@@ -116,6 +124,7 @@ export class UserController {
 
             await botManager.logoutBot(bot.folder)
             Bot.releaseBot(bot.id)
+            User.adjustQuota(req.user.id, -1)
             return redirectBack(req, res, `Bot ${bot.folder} di-logout dari WhatsApp!`)
         } catch (e) {
             if (req.query.redirect) return redirectBack(req, res, e.message)
@@ -174,8 +183,40 @@ export class UserController {
     }
 
     static async updateProfile(req, res) {
-        User.update(req.user.id, { email: req.body.email || null })
-        return res.json({ success: true, message: 'Profile diupdate!' })
+        try {
+            const data = {}
+            const username = req.body.username
+            const email = req.body.email
+
+            if (username && typeof username === 'string') {
+                const clean = username.replace(/[<>]/g, '').trim()
+                if (clean.length >= 3) {
+                    const existing = User.findByUsername(clean)
+                    if (existing && existing.id !== req.user.id) {
+                        return res.status(400).json({ success: false, message: 'Username sudah dipakai!' })
+                    }
+                    data.username = clean
+                }
+            }
+
+            if (req.body.email !== undefined) {
+                const cleanEmail = typeof req.body.email === 'string' ? req.body.email.replace(/[<>]/g, '').trim() : null
+                if (cleanEmail) {
+                    const existing = User.findByEmail(cleanEmail)
+                    if (existing && existing.id !== req.user.id) {
+                        return res.status(400).json({ success: false, message: 'Email sudah terdaftar!' })
+                    }
+                    data.email = cleanEmail
+                } else {
+                    data.email = null
+                }
+            }
+
+            User.update(req.user.id, data)
+            return res.json({ success: true, message: 'Profile diupdate!' })
+        } catch (e) {
+            return res.status(500).json({ success: false, message: 'Server error' })
+        }
     }
 
     static async changePassword(req, res) {
@@ -186,7 +227,7 @@ export class UserController {
         if (!req.body.new_password || req.body.new_password.length < 6) {
             return res.status(400).json({ success: false, message: 'Password baru minimal 6 karakter!' })
         }
-        User.setPassword(req.user.id, req.body.new_password)
-        return res.json({ success: true, message: 'Password diganti!' })
+        User.requestPasswordChange(req.user.id, req.body.new_password)
+        return res.json({ success: true, message: 'Permintaan ganti password terkirim! Menunggu persetujuan admin.' })
     }
 }

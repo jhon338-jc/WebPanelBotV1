@@ -407,6 +407,15 @@
             font-size: 14px; color: #5b584d; z-index: 1;
         }
         .input-wrap .input-brutal { padding-left: 40px; }
+        .input-wrap .toggle-pass {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; padding: 6px; cursor: pointer; color: #5b584d; font-size: 14px; z-index: 1;
+        }
+        .input-wrap .toggle-pass:hover { color: var(--color-black); }
+        .has-toggle .input-brutal { padding-right: 44px; }
+
+        /* ===== Password view cell ===== */
+        .pass-view { font-family: 'Space Mono', monospace; font-size: 13px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         /* ===== Form fields vertical ===== */
         .field { display: flex; flex-direction: column; gap: 6px; }
@@ -477,7 +486,7 @@
                             <i class="fas fa-user"></i>
                             <span><%= user.username %></span>
                         </span>
-                        <span class="badge <%= user.level === 'admin' ? 'badge-red' : user.level === 'reseller' ? 'badge-purple' : 'badge-blue' %>">
+                        <span class="badge <%= user.level === 'admin' ? 'badge-red' : user.level === 'premium' ? 'badge-purple' : user.level === 'langganan' ? 'badge-blue' : 'badge-green' %>">
                             <%= user.level.toUpperCase() %>
                         </span>
                     </div>
@@ -504,9 +513,20 @@
             })
         }
 
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId)
+            const icon = btn.querySelector('i')
+            if (input.type === 'password') {
+                input.type = 'text'
+                icon.className = 'fas fa-eye-slash'
+            } else {
+                input.type = 'password'
+                icon.className = 'fas fa-eye'
+            }
+        }
+
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container')
-            if (!container) return
             const toast = document.createElement('div')
             toast.className = 'toast-brutal toast-' + type
             const icon = type === 'success' ? 'check' : type === 'error' ? 'times'

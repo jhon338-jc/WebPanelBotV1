@@ -21,6 +21,9 @@ export class AuthController {
             if (User.findByUsername(username)) {
                 return res.status(400).json({ success: false, message: 'Username sudah terdaftar!' })
             }
+            if (email && User.findByEmail(email)) {
+                return res.status(400).json({ success: false, message: 'Email sudah terdaftar!' })
+            }
 
             User.create(username, password, email)
             logger.info(`User baru: ${username}`)

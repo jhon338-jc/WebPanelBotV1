@@ -19,6 +19,9 @@ router.get('/users', AdminController.listUsers)
 router.post('/users', AdminController.addUser)
 router.put('/users/:id', AdminController.updateUser)
 router.delete('/users/:id', AdminController.deleteUser)
+router.post('/users/:id/quota', AdminController.addQuota)
+router.post('/users/:id/approve-password', AdminController.approvePassword)
+router.post('/users/:id/reject-password', AdminController.rejectPassword)
 router.get('/system', AdminController.systemInfo)
 
 export default router

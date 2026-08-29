@@ -46,7 +46,7 @@ export class AdminController {
                 runningBots: botManager.getRunningCount(),
                 processMemory: (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1)
             }
-            if (req.path.startsWith('/api/')) {
+            if (req.baseUrl.startsWith('/api')) {
                 return res.json({ success: true, stats, bots, systemInfo })
             }
             res.render('admin/dashboard', { title: 'Admin Dashboard', stats, bots, systemInfo })
@@ -70,7 +70,7 @@ export class AdminController {
                     pid: status.pid
                 }
             })
-            if (req.path.startsWith('/api/')) {
+            if (req.baseUrl.startsWith('/api')) {
                 return res.json({ success: true, bots })
             }
             // Ambil log untuk semua bot, render langsung di server
@@ -92,7 +92,7 @@ export class AdminController {
     static async listUsers(req, res) {
         try {
             const users = User.findAll()
-            if (req.path.startsWith('/api/')) {
+            if (req.baseUrl.startsWith('/api')) {
                 return res.json({ success: true, users })
             }
             res.render('admin/users', { title: 'Manage Users', users, formatDateTime })
@@ -104,36 +104,101 @@ export class AdminController {
 
     static async addUser(req, res) {
         try {
-            const { username, password, email, level } = req.body
+            const { username, password, email, level, bot_quota } = req.body
             if (!username || !password) {
                 return res.status(400).json({ success: false, message: 'Username dan password wajib!' })
             }
             if (User.findByUsername(username)) {
                 return res.status(400).json({ success: false, message: 'Username sudah ada!' })
             }
+            if (email && User.findByEmail(email)) {
+                return res.status(400).json({ success: false, message: 'Email sudah terdaftar!' })
+            }
             const userId = User.create(username, password, email)
-            if (level && ['admin', 'reseller', 'member'].includes(level)) {
+            if (level && ['admin', 'premium', 'langganan', 'member'].includes(level)) {
                 User.update(userId, { level })
+            }
+            const quota = parseInt(bot_quota)
+            if (!isNaN(quota) && quota >= 0) {
+                User.update(userId, { bot_quota: quota })
             }
             return res.json({ success: true, message: 'User berhasil ditambah!' })
         } catch (e) {
             logger.error('Add user error:', e)
-            return res.status(500).json({ success: false, message: 'Server error' })
+            return res.status(500).json({ success: false, message: e.message || 'Server error' })
         }
     }
 
     static async updateUser(req, res) {
         try {
             const userId = parseInt(req.params.id)
-            const { username, email, level, status, bot_quota } = req.body
+            const { username, password, level, status, bot_quota } = req.body
             const data = {}
-            if (username) data.username = sanitizeInput(username)
-            if (email !== undefined) data.email = sanitizeInput(email)
-            if (level) data.level = level
-            if (status) data.status = status
-            if (bot_quota) data.bot_quota = parseInt(bot_quota)
+            if (username && typeof username === 'string') {
+                const clean = sanitizeInput(username)
+                const existing = User.findByUsername(clean)
+                if (existing && existing.id !== userId) {
+                    return res.status(400).json({ success: false, message: 'Username sudah dipakai!' })
+                }
+                data.username = clean
+            }
+            if (password !== undefined && password !== '') {
+                if (password.length < 6) {
+                    return res.status(400).json({ success: false, message: 'Password minimal 6 karakter!' })
+                }
+                data.password = password
+            }
+            if (level && ['admin', 'premium', 'langganan', 'member'].includes(level)) {
+                data.level = level
+            }
+            if (status && ['active', 'banned'].includes(status)) {
+                data.status = status
+            }
+            if (bot_quota !== undefined) {
+                const q = parseInt(bot_quota)
+                if (!isNaN(q) && q >= 0) data.bot_quota = q
+            }
             User.update(userId, data)
             return res.json({ success: true, message: 'User diupdate!' })
+        } catch (e) {
+            return res.status(500).json({ success: false, message: 'Server error' })
+        }
+    }
+
+    static async addQuota(req, res) {
+        try {
+            const userId = parseInt(req.params.id)
+            const add = parseInt(req.body.add)
+            if (isNaN(add) || add <= 0) {
+                return res.status(400).json({ success: false, message: 'Jumlah quota tidak valid!' })
+            }
+            User.adjustQuota(userId, add)
+            return res.json({ success: true, message: `Quota +${add}` })
+        } catch (e) {
+            return res.status(500).json({ success: false, message: 'Server error' })
+        }
+    }
+
+    static async approvePassword(req, res) {
+        try {
+            const userId = parseInt(req.params.id)
+            const user = User.findById(userId)
+            if (!user) return res.status(404).json({ success: false, message: 'User tidak ditemukan' })
+            if (!user.pending_password) {
+                return res.status(400).json({ success: false, message: 'Tidak ada permintaan ganti password' })
+            }
+            User.approvePasswordChange(userId)
+            return res.json({ success: true, message: `Password ${user.username} berhasil diganti!` })
+        } catch (e) {
+            return res.status(500).json({ success: false, message: 'Server error' })
+        }
+    }
+
+    static async rejectPassword(req, res) {
+        try {
+            const userId = parseInt(req.params.id)
+            User.rejectPasswordChange(userId)
+            return res.json({ success: true, message: 'Permintaan ganti password ditolak' })
         } catch (e) {
             return res.status(500).json({ success: false, message: 'Server error' })
         }

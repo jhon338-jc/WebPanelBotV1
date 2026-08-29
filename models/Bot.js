@@ -43,7 +43,7 @@ export class Bot {
 
     static getAvailableBots() {
         const db = readDB()
-        return db.bots.filter(b => b.assigned_to === null && b.status === 'stopped')
+        return db.bots.filter(b => b.assigned_to === null)
     }
 
     static getBotByUser(userId) {

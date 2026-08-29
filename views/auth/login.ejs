@@ -54,6 +54,11 @@
         .field label { font-size: 11px; text-transform: uppercase; font-weight: 700; }
         .input-wrap { position: relative; }
         .input-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; }
+        .input-wrap .toggle-pass {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; padding: 6px; cursor: pointer; color: #5b584d; font-size: 14px;
+        }
+        .input-wrap .toggle-pass:hover { color: var(--color-black); }
         .input-brutal {
             width: 100%;
             background: var(--bg-body);
@@ -66,6 +71,7 @@
             transition: all 0.12s ease;
         }
         .input-brutal:focus { box-shadow: 2px 2px 0px var(--accent); border-color: var(--accent); }
+        .has-toggle .input-brutal { padding-right: 44px; }
         .btn-brutal {
             width: 100%;
             background: var(--accent);
@@ -105,9 +111,12 @@
             </div>
             <div class="field">
                 <label>Password</label>
-                <div class="input-wrap">
+                <div class="input-wrap has-toggle">
                     <i class="fas fa-lock"></i>
-                    <input type="password" name="password" required class="input-brutal" placeholder="Masukkan password">
+                    <input type="password" name="password" required class="input-brutal" placeholder="Masukkan password" id="login-password">
+                    <button type="button" class="toggle-pass" onclick="togglePassword('login-password', this)">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
             </div>
             <button type="submit" class="btn-brutal">
@@ -122,6 +131,18 @@
     </div>
 
     <script>
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId)
+            const icon = btn.querySelector('i')
+            if (input.type === 'password') {
+                input.type = 'text'
+                icon.className = 'fas fa-eye-slash'
+            } else {
+                input.type = 'password'
+                icon.className = 'fas fa-eye'
+            }
+        }
+
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault()
             const formData = new FormData(e.target)
