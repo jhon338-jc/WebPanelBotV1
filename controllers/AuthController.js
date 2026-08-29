@@ -1,5 +1,5 @@
 import { User } from '../models/User.js'
-import { generateToken, sanitizeInput } from '../utils/helpers.js'
+import { generateToken, verifyToken, sanitizeInput } from '../utils/helpers.js'
 import { logger } from '../utils/logger.js'
 
 export class AuthController {
@@ -53,7 +53,7 @@ export class AuthController {
             res.cookie('token', token, {
                 httpOnly: true,
                 maxAge: 7 * 24 * 60 * 60 * 1000,
-                sameSite: 'lax'
+                sameSite: 'strict'
             })
 
             logger.info(`Login: ${username}`)
@@ -69,6 +69,13 @@ export class AuthController {
     }
 
     static logout(req, res) {
+        const token = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '')
+        if (token) {
+            const decoded = verifyToken(token)
+            if (decoded?.id) {
+                User.incrementTokenVersion(decoded.id)
+            }
+        }
         res.clearCookie('token')
         return res.json({ success: true, message: 'Logout berhasil!' })
     }

@@ -3,7 +3,7 @@ import { config } from '../config/config.js'
 
 export function generateToken(user) {
     return jwt.sign(
-        { id: user.id, username: user.username, level: user.level },
+        { id: user.id, username: user.username, level: user.level, tv: user.token_version || 0 },
         config.jwtSecret,
         { expiresIn: '7d' }
     )

@@ -15,6 +15,7 @@ import { initDatabase } from './database/init.js'
 import { getBotManager } from './managers/BotManager.js'
 import { logger } from './utils/logger.js'
 import { verifyToken } from './utils/helpers.js'
+import { User } from './models/User.js'
 import routes from './routes/index.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -79,6 +80,10 @@ io.use((socket, next) => {
     const token = socket.handshake.auth?.token
     const decoded = token ? verifyToken(token) : null
     if (!decoded) return next(new Error('Auth required'))
+    const user = User.findById(decoded.id)
+    if (!user || user.status !== 'active' || (decoded.tv || 0) !== (user.token_version || 0)) {
+        return next(new Error('Auth required'))
+    }
     socket.user = decoded
     next()
 })

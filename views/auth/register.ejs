@@ -54,25 +54,26 @@
         .field { display: flex; flex-direction: column; gap: 6px; }
         .field label { font-size: 11px; text-transform: uppercase; font-weight: 700; }
         .input-wrap { position: relative; }
-        .input-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; }
+        .input-wrap .input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #5b584d; }
         .input-wrap .toggle-pass {
             position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-            background: none; border: none; padding: 6px; cursor: pointer; color: #5b584d; font-size: 14px;
+            background: none; border: none; padding: 5px; cursor: pointer;
+            font-size: 1.1rem; line-height: 1; color: #090909; display: flex; align-items: center;
         }
-        .input-wrap .toggle-pass:hover { color: var(--color-black); }
+        .input-wrap .toggle-pass:hover { color: #555; }
         .input-brutal {
             width: 100%;
             background: var(--bg-body);
             border: var(--border-med);
             box-shadow: 3px 3px 0px var(--color-black);
-            padding: 12px 12px 12px 38px;
+            padding: 12px 45px 12px 38px;
             font-size: 14px;
             outline: none;
             color: var(--color-black);
             transition: all 0.12s ease;
         }
+        .input-wrap:not(.has-toggle) .input-brutal { padding-right: 12px; }
         .input-brutal:focus { box-shadow: 2px 2px 0px var(--accent); border-color: var(--accent); }
-        .has-toggle .input-brutal { padding-right: 44px; }
         .btn-brutal {
             width: 100%;
             background: var(--accent);
@@ -106,21 +107,21 @@
             <div class="field">
                 <label>Username</label>
                 <div class="input-wrap">
-                    <i class="fas fa-user"></i>
+                    <i class="fas fa-user input-icon"></i>
                     <input type="text" name="username" required minlength="3" class="input-brutal" placeholder="Minimal 3 karakter">
                 </div>
             </div>
             <div class="field">
                 <label>Email (Opsional)</label>
                 <div class="input-wrap">
-                    <i class="fas fa-envelope"></i>
+                    <i class="fas fa-envelope input-icon"></i>
                     <input type="email" name="email" class="input-brutal" placeholder="contoh@email.com">
                 </div>
             </div>
             <div class="field">
                 <label>Password</label>
                 <div class="input-wrap has-toggle">
-                    <i class="fas fa-lock"></i>
+                    <i class="fas fa-lock input-icon"></i>
                     <input type="password" name="password" required minlength="6" class="input-brutal" placeholder="Minimal 6 karakter" id="reg-password">
                     <button type="button" class="toggle-pass" onclick="togglePassword('reg-password', this)">
                         <i class="fas fa-eye"></i>
@@ -144,10 +145,12 @@
             const icon = btn.querySelector('i')
             if (input.type === 'password') {
                 input.type = 'text'
-                icon.className = 'fas fa-eye-slash'
+                icon.classList.remove('fa-eye')
+                icon.classList.add('fa-eye-slash')
             } else {
                 input.type = 'password'
-                icon.className = 'fas fa-eye'
+                icon.classList.remove('fa-eye-slash')
+                icon.classList.add('fa-eye')
             }
         }
 

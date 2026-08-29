@@ -22,6 +22,7 @@ export class User {
             status: 'active',
             bot_quota: 1,
             pending_password: null,
+            token_version: 0,
             expired_at: null,
             created_at: new Date().toISOString(),
             last_login: null
@@ -90,6 +91,15 @@ export class User {
         const index = db.users.findIndex(u => u.id === id)
         if (index !== -1) {
             db.users[index].last_login = new Date().toISOString()
+            writeDB(db)
+        }
+    }
+
+    static incrementTokenVersion(id) {
+        const db = readDB()
+        const index = db.users.findIndex(u => u.id === id)
+        if (index !== -1) {
+            db.users[index].token_version = (db.users[index].token_version || 0) + 1
             writeDB(db)
         }
     }

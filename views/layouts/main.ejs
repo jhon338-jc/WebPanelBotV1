@@ -409,9 +409,10 @@
         .input-wrap .input-brutal { padding-left: 40px; }
         .input-wrap .toggle-pass {
             position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-            background: none; border: none; padding: 6px; cursor: pointer; color: #5b584d; font-size: 14px; z-index: 1;
+            background: none; border: none; padding: 5px; cursor: pointer;
+            font-size: 1.1rem; line-height: 1; color: #090909; z-index: 1; display: flex; align-items: center;
         }
-        .input-wrap .toggle-pass:hover { color: var(--color-black); }
+        .input-wrap .toggle-pass:hover { color: #555; }
         .has-toggle .input-brutal { padding-right: 44px; }
 
         /* ===== Password view cell ===== */
@@ -518,10 +519,12 @@
             const icon = btn.querySelector('i')
             if (input.type === 'password') {
                 input.type = 'text'
-                icon.className = 'fas fa-eye-slash'
+                icon.classList.remove('fa-eye')
+                icon.classList.add('fa-eye-slash')
             } else {
                 input.type = 'password'
-                icon.className = 'fas fa-eye'
+                icon.classList.remove('fa-eye-slash')
+                icon.classList.add('fa-eye')
             }
         }
 
