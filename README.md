@@ -22,10 +22,7 @@ Jika `cloudflared` tidak ada di repo Termux:
 ```bash
 npm install -g cloudflared
 ```
-Untuk link custom (LocalTunnel), install juga:
-```bash
-npm install -g localtunnel
-```
+> LocalTunnel (opsi 2) tidak perlu diinstall di Termux — tidak support Android.
 
 ### 2. Clone & setup
 ```bash
@@ -46,12 +43,13 @@ bash setup.sh
 bash termux/start-panel.sh
 ```
 Skrip menampilkan pilihan tunnel:
-- **1. Cloudflare** — link acak `https://xxx.trycloudflare.com`
-- **2. LocalTunnel** — link custom `https://jhon338-panel.loca.lt` (ganti subdomain bebas)
+- **1. Cloudflare** — link acak `https://xxx.trycloudflare.com` (default)
+- **2. LocalTunnel** — link custom, **TIDAK support di Termux (Android)**
 
-Pilih 2 (LocalTunnel) untuk link yang gampang dikenali & diingat.
+> ⚠️ LocalTunnel error `Unsupported platform: android` di Termux. Pakai opsi **1 (Cloudflare)**.
+> Opsi 2 hanya jalan di Linux/VPS (set `ALLOW_LT=1` bila perlu).
+
 **Bagikan link itu ke orang lain** — mereka bisa login, assign bot, connect, lihat log.
-
 Tekan `Ctrl+C` untuk menghentikan panel & tunnel.
 
 ## Login Admin

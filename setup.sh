@@ -39,22 +39,17 @@ else
     echo "[i] bots/node_modules sudah ada lengkap (pino terdeteksi), skip."
 fi
 
-# 2b) Install localtunnel (link custom) - opsional
-if ! command -v lt >/dev/null 2>&1; then
-    echo ""
-    echo "[?] Ingin install LocalTunnel untuk link custom (https://subdomain.loca.lt)?"
-    echo "    LocalTunnel = link panel gampang dikenali (bukan random alpha-numeric)."
-    printf "    Pilih [y/N]: "
-    read -r DO_LT
-    if [ "$DO_LT" = "y" ] || [ "$DO_LT" = "Y" ]; then
-        echo "[*] Install LocalTunnel secara global ..."
-        npm install -g localtunnel --no-audit --no-fund
-        echo "[+] LocalTunnel terpasang. Jalankan: bash termux/start-panel.sh (pilih LocalTunnel)"
+# 2b) Install localtunnel (link custom) - opsional, HANYA untuk Linux/VPS
+#     LocalTunnel pakai openurl yang error "Unsupported platform: android" di Termux.
+if [ -d /data/data/com.termux ] || ! command -v lt >/dev/null 2>&1; then
+    if [ -d /data/data/com.termux ]; then
+        echo "[i] LocalTunnel dilewati (tidak support Android/Termux)."
+        echo "    Panel akan pakai Cloudflare: bash termux/start-panel.sh"
+    elif command -v lt >/dev/null 2>&1; then
+        echo "[i] LocalTunnel sudah terpasang, skip."
     else
-        echo "[i] LocalTunnel dilewati. Panel tetap bisa pakai Cloudflare."
+        echo "[i] LocalTunnel dilewati. Panel tetap pakai Cloudflare."
     fi
-else
-    echo "[i] LocalTunnel sudah terpasang, skip."
 fi
 
 # 3) Symlink node_modules tiap bot -> shared

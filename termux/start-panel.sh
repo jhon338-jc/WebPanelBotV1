@@ -4,6 +4,9 @@
 #  Pilihan tunnel:
 #   1) Cloudflare  -> https://xxx.trycloudflare.com (random)
 #   2) LocalTunnel -> https://<subdomain>.loca.lt   (custom)
+#  LOCAL TUNNEL TIDAK SUPPORT DI TERMUX ANDROID
+#  (pakai openurl yang error "Unsupported platform: android")
+#  LocalTunnel hanya jalan di Linux/VPS.
 #  Cara pakai:  bash termux/start-panel.sh
 # =====================================================
 
@@ -35,37 +38,46 @@ if [ ! -d node_modules ]; then
     exit 1
 fi
 
-# 3) Pilih tunnel
-DEFAULT_TUN="${TUNNEL:-localtunnel}"
+# 3) Deteksi platform
+if [ -d /data/data/com.termux ]; then
+    IS_TERMUX=1
+else
+    IS_TERMUX=0
+fi
+
+# 4) Pilih tunnel (default: Cloudflare)
 echo -e "Pilih tunnel:"
-echo -e "  1) Cloudflare   (link acak https://xxx.trycloudflare.com)"
+echo -e "  1) Cloudflare   (link acak https://xxx.trycloudflare.com)  [default]"
 echo -e "  2) LocalTunnel  (link custom https://<subdomain>.loca.lt)"
-printf "Pilihan [1/2] (default: %s): " "${DEFAULT_TUN}"
+printf "Pilihan [1/2] (default: 1): "
 read -r CHOICE
+CHOICE="${CHOICE:-1}"
 
 case "$CHOICE" in
     2) TUNNEL="localtunnel" ;;
-    *) TUNNEL="${DEFAULT_TUN}" ;;
+    1) TUNNEL="cloudflare" ;;
+    *) TUNNEL="cloudflare" ;;
 esac
 
-# Subdomain custom untuk localtunnel
-LT_SUB="${LT_SUBDOMAIN:-jhon338-panel}"
+# 5) LocalTunnel tidak support di Termux Android
 if [ "$TUNNEL" = "localtunnel" ]; then
+    echo ""
+    if [ "$IS_TERMUX" = "1" ] && [ -z "$ALLOW_LT" ]; then
+        echo -e "${R}[!]${N} LocalTunnel TIDAK SUPPORT di Android/Termux."
+        echo "    Error: Unsupported platform: android (openurl)."
+        echo "    Gunakan opsi 1 (Cloudflare) di Termux."
+        echo "    LocalTunnel hanya untuk Linux/VPS."
+        echo ""
+        echo "    (Untuk paksa di Linux/VPS saja, set: ALLOW_LT=1)"
+        exit 1
+    fi
+
+    # Subdomain custom (hanya bila lolos, mis. Linux/VPS)
+    LT_SUB="${LT_SUBDOMAIN:-jhon338-panel}"
     printf "Subdomain yang diinginkan (default: %s): " "$LT_SUB"
     read -r CK
     [ -n "$CK" ] && LT_SUB="$CK"
-fi
 
-# 4) Validate tool terpasang
-if [ "$TUNNEL" = "cloudflare" ]; then
-    if ! command -v cloudflared >/dev/null 2>&1; then
-        echo -e "${R}[!]${N} cloudflared belum terpasang."
-        echo "    Install:  pkg install cloudflared"
-        echo "    atau   :  npm install -g cloudflared"
-        exit 1
-    fi
-    TUN_CMD="cloudflared tunnel --url http://localhost:$PORT"
-elif [ "$TUNNEL" = "localtunnel" ]; then
     if ! command -v lt >/dev/null 2>&1; then
         echo -e "${R}[!]${N} localtunnel belum terpasang."
         echo "    Install:  npm install -g localtunnel"
@@ -73,18 +85,38 @@ elif [ "$TUNNEL" = "localtunnel" ]; then
     fi
     TUN_CMD="lt --port $PORT --subdomain $LT_SUB"
 else
-    echo -e "${R}[!]${N} Tunnel tidak dikenal: $TUNNEL"
-    exit 1
+    # 6) Cloudflare
+    if ! command -v cloudflared >/dev/null 2>&1; then
+        echo -e "${R}[!]${N} cloudflared belum terpasang."
+        echo "    Install:  pkg install cloudflared"
+        echo "    atau   :  npm install -g cloudflared"
+        exit 1
+    fi
+    TUN_CMD="cloudflared tunnel --url http://localhost:$PORT"
 fi
 
-# 5) Hentikan server lama yang mungkin port 3000 terpakai
-if lsof -i :$PORT >/dev/null 2>&1; then
-    echo -e "${Y}[i]${N} Port $PORT sedang terpakai. Menghentikan proses lama ..."
-    fuser -k $PORT/tcp 2>/dev/null || true
-    sleep 2
+# 7) Hentikan server lama yang mungkin port $PORT terpakai
+if command -v fuser >/dev/null 2>&1; then
+    if fuser -k $PORT/tcp >/dev/null 2>&1; then
+        echo -e "${Y}[i]${N} Proses lama di port $PORT dihentikan ..."
+        sleep 2
+    fi
+elif command -v lsof >/dev/null 2>&1; then
+    if lsof -i :$PORT >/dev/null 2>&1; then
+        echo -e "${Y}[i]${N} Proses lama di port $PORT dihentikan ..."
+        lsof -ti :$PORT | xargs -r kill -9 2>/dev/null || true
+        sleep 2
+    fi
+else
+    # Fallback: pkill node server.js
+    if pgrep -f "node server.js" >/dev/null 2>&1; then
+        echo -e "${Y}[i]${N} Proses node server.js lama dihentikan ..."
+        pkill -f "node server.js" 2>/dev/null || true
+        sleep 2
+    fi
 fi
 
-# 6) Jalankan panel
+# 8) Jalankan panel
 echo -e "${C}[*]${N} Menjalankan panel di port $PORT ..."
 node server.js > "$LOG_DIR/panel.out.log" 2>&1 &
 PANEL_PID=$!
@@ -96,7 +128,7 @@ if ! kill -0 $PANEL_PID 2>/dev/null; then
 fi
 echo -e "${G}[+]${N} Panel aktif (PID $PANEL_PID)"
 
-# 7) Buka tunnel terpilih
+# 9) Buka tunnel terpilih
 echo -e "${C}[*]${N} Membuka tunnel $TUNNEL ..."
 echo ""
 echo "======================================================"
@@ -113,9 +145,7 @@ echo "  Tekan  Ctrl+C  untuk menutup panel & tunnel."
 echo "======================================================"
 echo ""
 
-# 8) Pertahankan variabel saat tunnel, jalankan sebagai background biar panel+help terbaca
+# 10) Jalankan tunnel & tunggu Ctrl+C
 $TUN_CMD &
 TUN_PID=$!
-
-# Tunggu Ctrl+C
 wait $TUN_PID
