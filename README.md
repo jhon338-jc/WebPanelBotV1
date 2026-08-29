@@ -22,6 +22,10 @@ Jika `cloudflared` tidak ada di repo Termux:
 ```bash
 npm install -g cloudflared
 ```
+Untuk link custom (LocalTunnel), install juga:
+```bash
+npm install -g localtunnel
+```
 
 ### 2. Clone & setup
 ```bash
@@ -41,7 +45,11 @@ bash setup.sh
 ```bash
 bash termux/start-panel.sh
 ```
-Skrip menampilkan link publik seperti `https://xxx.trycloudflare.com`.
+Skrip menampilkan pilihan tunnel:
+- **1. Cloudflare** — link acak `https://xxx.trycloudflare.com`
+- **2. LocalTunnel** — link custom `https://jhon338-panel.loca.lt` (ganti subdomain bebas)
+
+Pilih 2 (LocalTunnel) untuk link yang gampang dikenali & diingat.
 **Bagikan link itu ke orang lain** — mereka bisa login, assign bot, connect, lihat log.
 
 Tekan `Ctrl+C` untuk menghentikan panel & tunnel.
@@ -63,6 +71,14 @@ landing-page/        # halaman statis untuk Vercel (repo terpisah: Panel-Web-Bot
 ```
 
 ## Catatan
-- `node_modules`, folder `auth` bot, `database/panel.json`, dan `.env` TIDAK di-commit
-  (lihat `.gitignore`). Setelah clone, `setup.sh` menyiapkannya.
+- `node_modules`, folder `auth` bot, dan `.env` TIDAK di-commit (lihat `.gitignore`).
+  Setelah clone, `setup.sh` menyiapkannya.
+- `database/panel.json` **di-commit** (berisi data user & status bot). Setelah `git pull`
+  di HP, versi yang di-pull menimpa file lokal. Bot yang pernah dipakai user lama di-reset
+  ke `status: stopped`, `assigned_to: null` supaya user baru melihat 10 bot kosong.
+- **Reset bot assignment di HP** (bila masih ada bot "konek" ke user lama, mis. Bot3):
+  ```bash
+  cd ~/WebPanelBotV1 && bash termux/reset-bots.sh
+  ```
+  lalu `bash termux/start-panel.sh`.
 - Folder `auth` bot dikosongkan → setiap bot harus pairing ulang setelah setup.

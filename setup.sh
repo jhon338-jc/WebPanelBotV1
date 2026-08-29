@@ -39,6 +39,24 @@ else
     echo "[i] bots/node_modules sudah ada lengkap (pino terdeteksi), skip."
 fi
 
+# 2b) Install localtunnel (link custom) - opsional
+if ! command -v lt >/dev/null 2>&1; then
+    echo ""
+    echo "[?] Ingin install LocalTunnel untuk link custom (https://subdomain.loca.lt)?"
+    echo "    LocalTunnel = link panel gampang dikenali (bukan random alpha-numeric)."
+    printf "    Pilih [y/N]: "
+    read -r DO_LT
+    if [ "$DO_LT" = "y" ] || [ "$DO_LT" = "Y" ]; then
+        echo "[*] Install LocalTunnel secara global ..."
+        npm install -g localtunnel --no-audit --no-fund
+        echo "[+] LocalTunnel terpasang. Jalankan: bash termux/start-panel.sh (pilih LocalTunnel)"
+    else
+        echo "[i] LocalTunnel dilewati. Panel tetap bisa pakai Cloudflare."
+    fi
+else
+    echo "[i] LocalTunnel sudah terpasang, skip."
+fi
+
 # 3) Symlink node_modules tiap bot -> shared
 #    Hapus folder node_modules lama (real) lalu ganti symlink ke shared.
 echo "[*] Setup symlink node_modules untuk Bot1..Bot10 ..."
