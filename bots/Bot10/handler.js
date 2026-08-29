@@ -1,0 +1,278 @@
+import { autoMod, linkDetector } from './lib/autoMod.js'
+import { antiSpam } from './lib/antiSpam.js'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath, pathToFileURL } from 'url'
+import { sendNotification } from './lib/myFunction.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const pluginDir = path.join(__dirname, 'plugins')
+
+export const plugins = new Map()
+
+const pluginCache = new Map()
+const watchers = new Map()
+const pendingReloads = new Map()
+
+const MONITOR_FILE = './database/monitor.json'
+
+const readJSON = file => JSON.parse(fs.readFileSync(file))
+
+function getPluginFiles(dir) {
+    let files = []
+    if (!fs.existsSync(dir)) return files
+    for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, item.name)
+        if (item.isDirectory()) files.push(...getPluginFiles(full))
+        else if (item.isFile() && item.name.endsWith('.js')) files.push(full)
+    }
+    return files
+}
+
+async function loadPlugin(file) {
+    try {
+        const module = await import(`${pathToFileURL(file).href}?update=${Date.now()}`)
+        const handler = module.default
+        if (!handler) return
+        if (pluginCache.has(file)) {
+            for (const key of pluginCache.get(file)) plugins.delete(key)
+        }
+        const keys = []
+        if (handler.command && !(handler.command instanceof RegExp)) {
+            const commands = Array.isArray(handler.command) ? handler.command : [handler.command]
+            for (const cmd of commands) {
+                const key = String(cmd).toLowerCase()
+                plugins.set(key, handler)
+                keys.push(key)
+            }
+        }
+        if (handler.customPrefix) {
+            const key = Symbol(file)
+            plugins.set(key, handler)
+            keys.push(key)
+        }
+        pluginCache.set(file, keys)
+        console.log(`[PLUGIN] Loaded ${path.relative(pluginDir, file)}`)
+    } catch (e) {
+        console.error(`[PLUGIN] Failed ${file}`)
+        console.error(e)
+    }
+}
+
+async function unloadPlugin(file) {
+    if (!pluginCache.has(file)) return
+    for (const key of pluginCache.get(file)) plugins.delete(key)
+    pluginCache.delete(file)
+    console.log(`[PLUGIN] Unloaded ${path.relative(pluginDir, file)}`)
+}
+
+export async function initPlugins() {
+    for (const file of getPluginFiles(pluginDir)) {
+        await loadPlugin(file)
+    }
+    watch(pluginDir)
+}
+
+function watch(dir) {
+    if (watchers.has(dir)) return
+    watchers.set(dir, fs.watch(dir, (_, filename) => {
+        if (!filename || !filename.endsWith('.js')) return
+        const file = path.join(dir, filename)
+        if (pendingReloads.has(file)) clearTimeout(pendingReloads.get(file))
+        pendingReloads.set(file, setTimeout(async () => {
+            pendingReloads.delete(file)
+            if (fs.existsSync(file)) await loadPlugin(file)
+            else await unloadPlugin(file)
+        }, 200))
+    }))
+    for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (item.isDirectory()) watch(path.join(dir, item.name))
+    }
+}
+
+function extractCommandFromMessage(m) {
+    let body = ''
+    let isButtonResponse = false
+    try {
+        if (m.message) {
+            if (m.message.conversation) body = m.message.conversation
+            else if (m.message.extendedTextMessage?.text) body = m.message.extendedTextMessage.text
+            else if (m.message.imageMessage?.caption) body = m.message.imageMessage.caption
+            else if (m.message.videoMessage?.caption) body = m.message.videoMessage.caption
+            else if (m.message.documentMessage?.caption) body = m.message.documentMessage.caption
+            else if (m.message.interactiveResponseMessage) {
+                const inter = m.message.interactiveResponseMessage
+                if (inter.nativeFlowResponseMessage) {
+                    const flow = inter.nativeFlowResponseMessage
+                    if (flow.paramsJson) {
+                        try {
+                            const params = JSON.parse(flow.paramsJson)
+                            body = params.id || params.buttonId || params.rowId || params.index || ''
+                        } catch { body = flow.name || '' }
+                    } else body = flow.name || ''
+                    isButtonResponse = true
+                } else if (inter.buttonReply) {
+                    body = inter.buttonReply.selectedButtonId || ''
+                    isButtonResponse = true
+                } else if (inter.singleSelectReply) {
+                    body = inter.singleSelectReply.selectedRowId || ''
+                    isButtonResponse = true
+                }
+            } else if (m.message.templateButtonReplyMessage) {
+                body = m.message.templateButtonReplyMessage.selectedId || ''
+                isButtonResponse = true
+            } else if (m.message.buttonsResponseMessage) {
+                body = m.message.buttonsResponseMessage.selectedButtonId || ''
+                isButtonResponse = true
+            }
+        }
+    } catch (error) {
+        console.error('Error parsing message:', error)
+    }
+    return { body, isButtonResponse }
+}
+
+export default async function handleMessage(conn, m) {
+    try {
+        if (m.chat?.includes('@newsletter')) return
+        if (m.sender?.includes('@newsletter')) return
+
+        const { body, isButtonResponse } = extractCommandFromMessage(m)
+        if (!body) return
+        m.text = body
+        m.isButtonResponse = isButtonResponse
+
+        const config = readJSON('./config.json')
+        const role = readJSON('./database/role.json')
+        const number = m.sender.split('@')[0]
+        m.isCreator = config.creator.includes(number)
+        m.isOwner = m.isCreator || role.owner.includes(number)
+        m.isPremium = m.isOwner || role.premium.includes(number)
+
+        // Cek grup monitor dulu
+        if (m.isGroup) {
+            const monitor = JSON.parse(fs.readFileSync(MONITOR_FILE))
+            // Kalau belum ada grup yang di-monitor, respon di semua grup dulu
+            if (monitor.groups.length === 0) {
+                // izinkan semua grup
+            } else if (monitor.waiting && !m.isOwner) return
+            else if (!monitor.groups.includes(m.chat)) return
+        }
+
+
+// Auto Mod - Spam & Link Detection (khusus grup monitor, bukan owner)
+if (m.isGroup && !m.isOwner) {
+
+    const spamCheck = autoMod(conn, m)
+            if (spamCheck) {
+                if (spamCheck.type === 'warning') {
+                    await conn.sendMessage(m.chat, { text: `⚠️ *PERINGATAN SPAM*\n\n@${spamCheck.sender.split('@')[0]} jangan spam pesan yang sama!\n\nBot bakal kick kalau spam lagi.` }, { mentions: [spamCheck.sender] })
+                } else if (spamCheck.type === 'kick') {
+                    try {
+                        await conn.groupParticipantsUpdate(m.chat, [spamCheck.sender], 'remove')
+                        await conn.sendMessage(m.chat, { text: `👢 *USER DIKICK*\n\n@${spamCheck.sender.split('@')[0]} dikick karena spam!` }, { mentions: [spamCheck.sender] })
+                    } catch (e) {}
+                }
+                return
+            }
+
+            const linkCheck = linkDetector(conn, m)
+            if (linkCheck) {
+                try {
+                    await conn.sendMessage(m.chat, { delete: m.key })
+                    await conn.sendMessage(m.chat, { text: `🔒 *LINK DIHAPUS*\n\n@${linkCheck.sender.split('@')[0]} jangan kirim link di grup!` }, { mentions: [linkCheck.sender] })
+                } catch (e) {}
+                return
+            }
+        }
+
+        // Anti-spam command
+        if (!m.isOwner && antiSpam(m, 5, 10)) {
+            return await conn.sendMessage(m.chat, { text: '⚠️ *Anti-Spam*\n\nLu kebanyakan command! Tunggu 10 detik.' })
+        }
+
+        if (config.botMode === 'self' && !m.isOwner) return
+
+        if (!m.isGroup && m.isOwner) {
+            const rawInput = body.trim()
+            if (/^[\d,\s]+$/.test(rawInput)) {
+                const numbers = rawInput.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n))
+                if (numbers.length < 1 || numbers.length > 5) {
+                    return await conn.sendMessage(m.chat, { text: '⚠️ Pilih minimal 1, maksimal 5 grup!\n\nFormat: *1,2,3,4,5*' })
+                }
+                const groups = await conn.groupFetchAllParticipating()
+                const groupList = Object.values(groups)
+                const invalidNumbers = numbers.filter(n => n < 1 || n > groupList.length)
+                if (invalidNumbers.length > 0) {
+                    return await conn.sendMessage(m.chat, { text: `❌ Nomor grup tidak valid: ${invalidNumbers.join(', ')}\n\nGrup tersedia: 1 - ${groupList.length}` })
+                }
+                const selectedGroups = numbers.map(n => groupList[n - 1])
+                const monitor = JSON.parse(fs.readFileSync(MONITOR_FILE))
+                monitor.groups = selectedGroups.map(g => g.id)
+                monitor.waiting = false
+                fs.writeFileSync(MONITOR_FILE, JSON.stringify(monitor, null, 2))
+                let confirmText = `✅ *${selectedGroups.length} Grup Dipilih*\n\n`
+                selectedGroups.forEach((g, i) => {
+                    confirmText += `${i + 1}. ${g.subject}\n   👥 ${g.participants?.length || 0} anggota\n\n`
+                })
+                confirmText += `🤖 Bot hanya aktif di grup yang dipilih!`
+                await conn.sendMessage(m.chat, { text: confirmText })
+                return
+            }
+        }
+
+
+        const notifReply = async (text, title = 'Notification') => {
+            await sendNotification(conn, m, title, text)
+        }
+        const checkAccess = handler => {
+            if (handler.creator && !m.isCreator) {
+                notifReply('❌ Khusus Creator!', 'Access Denied')
+                return true
+            }
+            if (handler.owner && !m.isOwner) {
+                notifReply(config.accessDenied.owner, 'Access Denied')
+                return true
+            }
+            return false
+        }
+
+        if (isButtonResponse) {
+            let bodyText = body
+            const prefixes = config.prefix || ['.']
+            for (const p of prefixes) {
+                if (bodyText.startsWith(p)) { bodyText = bodyText.slice(p.length); break }
+            }
+            const args = bodyText.trim().split(/\s+/)
+            const command = args.shift().toLowerCase()
+            const handler = plugins.get(command)
+            if (!handler) return
+            const denied = checkAccess(handler)
+            if (denied) return
+            return await handler(m, { conn, args, text: args.join(' '), command, prefix: '', notifReply })
+        }
+
+        for (const handler of plugins.values()) {
+            if (!handler.customPrefix) continue
+            if (!handler.customPrefix.test(m.text)) continue
+            const denied = checkAccess(handler)
+            if (denied) return
+            const text = m.text.replace(handler.customPrefix, '').trim()
+            return await handler(m, { conn, args: text ? text.split(/\s+/) : [], text, command: '', prefix: '', notifReply })
+        }
+
+        const prefix = (config.prefix || ['.']).find(p => m.text.startsWith(p))
+        if (!prefix) return
+        const body2 = m.text.slice(prefix.length).trim()
+        if (!body2) return
+        const args = body2.split(/\s+/)
+        const command = args.shift().toLowerCase()
+        const handler = plugins.get(command)
+        if (!handler) return
+        const denied = checkAccess(handler)
+        if (denied) return
+        await handler(m, { conn, args, text: args.join(' '), command, prefix, notifReply })
+    } catch (e) {
+        console.error(e)
+    }
+}

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bot WhatsApp Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial; background: #1a1a2e; color: #fff; padding: 20px; }
+        .container { max-width: 400px; margin: 50px auto; background: #16213e; padding: 30px; border-radius: 15px; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; background: #0f3460; color: #fff; border: none; border-radius: 8px; font-size: 16px; }
+        button { width: 100%; padding: 14px; background: #e94560; color: #fff; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; }
+        button:hover { background: #ff6b81; }
+        .result { margin-top: 20px; padding: 15px; background: #0f3460; border-radius: 8px; text-align: center; font-size: 24px; }
+        h1 { text-align: center; color: #e94560; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Bot WhatsApp Panel</h1>
+        
+        <label>Pilih Bot:</label>
+        <select id="botName">
+            <option value="Bot1">Bot1</option>
+            <option value="Bot2">Bot2</option>
+            <option value="Bot3">Bot3</option>
+            <option value="Bot4">Bot4</option>
+            <option value="Bot5">Bot5</option>
+            <option value="Bot6">Bot6</option>
+            <option value="Bot7">Bot7</option>
+            <option value="Bot8">Bot8</option>
+            <option value="Bot9">Bot9</option>
+            <option value="Bot10">Bot10</option>
+        </select>
+        
+        <label>Nomor WhatsApp:</label>
+        <input type="text" id="number" placeholder="628xxx">
+        
+        <button onclick="pairing()">Minta Kode Pairing</button>
+        
+        <div class="result" id="result" style="display:none;">
+            <p>Kode Pairing:</p>
+            <h2 id="code"></h2>
+            <p>Buka WhatsApp → Linked Devices → Link a Device → Masukkan kode di atas</p>
+        </div>
+    </div>
+
+    <script>
+        async function pairing() {
+            const botName = document.getElementById('botName').value
+            const number = document.getElementById('number').value
+            
+            if (!number) {
+                alert('Masukkan nomor!')
+                return
+            }
+            
+            const res = await fetch('/api/pairing', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ number, botName })
+            })
+            
+            const data = await res.json()
+            
+            if (data.success) {
+                document.getElementById('code').textContent = data.code
+                document.getElementById('result').style.display = 'block'
+            } else {
+                alert(data.message)
+            }
+        }
+    </script>
+</body>
+</html>

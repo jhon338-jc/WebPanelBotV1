@@ -1,0 +1,129 @@
+<% content = `
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h3 class="text-lg font-semibold text-gray-800">
+            <i class="fas fa-users mr-2 text-blue-600"></i> Manage Users
+        </h3>
+        <button onclick="showAddUserModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <i class="fas fa-plus mr-2"></i> Tambah User
+        </button>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Level</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bot Quota</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                ${users.length === 0 ? `
+                    <tr><td colspan="6" class="px-4 py-3 text-center text-gray-500">Tidak ada user</td></tr>
+                ` : users.map(user => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm">${user.id}</td>
+                        <td class="px-4 py-3 text-sm font-medium">
+                            ${user.username}
+                            <p class="text-xs text-gray-400">${user.email || '-'}</p>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs rounded-full ${user.level === 'admin' ? 'bg-red-100 text-red-600' : user.level === 'reseller' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}">${user.level}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs rounded-full ${user.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">${user.status}</span>
+                        </td>
+                        <td class="px-4 py-3 text-sm">${user.bot_quota}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex space-x-1">
+                                <button onclick="toggleUserStatus(${user.id}, '${user.status}')" class="px-2 py-1 text-xs rounded ${user.status === 'active' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
+                                    ${user.status === 'active' ? 'Ban' : 'Unban'}
+                                </button>
+                                <button onclick="deleteUser(${user.id}, '${user.username}')" class="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200">
+                                    Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="add-user-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl w-full max-w-md p-6">
+        <h4 class="font-semibold mb-4">Tambah User</h4>
+        <form id="add-user-form" class="space-y-3">
+            <input type="text" name="username" placeholder="Username" required class="w-full px-3 py-2 border rounded-lg">
+            <input type="password" name="password" placeholder="Password" required class="w-full px-3 py-2 border rounded-lg">
+            <input type="email" name="email" placeholder="Email (opsional)" class="w-full px-3 py-2 border rounded-lg">
+            <select name="level" class="w-full px-3 py-2 border rounded-lg">
+                <option value="member">Member</option>
+                <option value="reseller">Reseller</option>
+                <option value="admin">Admin</option>
+            </select>
+            <div class="flex space-x-2">
+                <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Tambah</button>
+                <button type="button" onclick="closeAddUserModal()" class="px-4 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400">Batal</button>
+            </div>
+        </form>
+    </div>
+</div>
+` %>
+
+<%- include('../layouts/main', { title: 'Manage Users', content: content }) %>
+
+<script>
+    function showAddUserModal() {
+        document.getElementById('add-user-modal').classList.remove('hidden')
+    }
+
+    function closeAddUserModal() {
+        document.getElementById('add-user-modal').classList.add('hidden')
+    }
+
+    document.getElementById('add-user-form').addEventListener('submit', async (e) => {
+        e.preventDefault()
+        const formData = new FormData(e.target)
+        const data = Object.fromEntries(formData)
+
+        const res = await fetch('/api/admin/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        const result = await res.json()
+        showToast(result.message, result.success ? 'success' : 'error')
+
+        if (result.success) {
+            closeAddUserModal()
+            e.target.reset()
+            window.location.reload()
+        }
+    })
+
+    async function toggleUserStatus(id, currentStatus) {
+        const newStatus = currentStatus === 'active' ? 'banned' : 'active'
+        const res = await fetch(`/api/admin/users/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        })
+        const result = await res.json()
+        showToast(result.message, result.success ? 'success' : 'error')
+        window.location.reload()
+    }
+
+    async function deleteUser(id, username) {
+        if (!confirm(`Hapus user ${username}?`)) return
+        const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' })
+        const result = await res.json()
+        showToast(result.message, result.success ? 'success' : 'error')
+        window.location.reload()
+    }
+</script>

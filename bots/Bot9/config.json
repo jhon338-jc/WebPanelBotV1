@@ -1,0 +1,20 @@
+{
+  "botName": "Jhon338 - Bot3",
+  "ownerName": "JhonChenank3",
+  "creator": [
+    "6285134895788",
+    "6283181700617"
+  ],
+  "prefix": [
+    ".",
+    "#",
+    "!",
+    "/"
+  ],
+  "botMode": "public",
+  "accessDenied": {
+    "owner": "Fitur ini khusus Owner.",
+    "creator": "Fitur ini khusus Creator.",
+    "premium": "Fitur ini khusus Premium."
+  }
+}

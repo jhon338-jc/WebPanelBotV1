@@ -1,0 +1,16 @@
+{
+  "name": "Jhon338 Bot",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@whiskeysockets/baileys": "npm:levvleys@latest",
+    "file-type": "^19.0.0",
+    "jimp": "^0.22.12",
+    "pino": "^8.17.2"
+  }
+}

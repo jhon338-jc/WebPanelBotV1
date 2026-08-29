@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+bots/*/node_modules/
+bots/*/package-lock.json
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Bot auth/session (paksa pairing ulang setelah clone)
+bots/*/auth/
+
+# Bot database/session state
+bots/*/database/
+bots/*/session/
+bots/*/tmp/
+
+# OS
+.DS_Store
+
+# Termux/editor
+termux/.fix
+
+# Landing page (punya repo GitHub sendiri: Panel-Web-Bot)
+landing-page/

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> | Jhon338 Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .card { transition: all 0.3s; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        .log-container { font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.5; }
+        .log-info { color: #3b82f6; }
+        .log-error { color: #ef4444; }
+        .log-warn { color: #f59e0b; }
+        .toast { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <% if (typeof user !== 'undefined' && user) { %>
+        <div class="flex h-screen overflow-hidden">
+            <aside class="fixed inset-y-0 left-0 w-64 bg-gray-900 text-white z-50">
+                <div class="flex items-center justify-center h-16 border-b border-gray-700">
+                    <h1 class="text-xl font-bold">🤖 Jhon338 Panel</h1>
+                </div>
+                <nav class="mt-5 px-4 space-y-2">
+                    <% if (user.level === 'admin') { %>
+                        <a href="/admin/dashboard" class="block px-4 py-2 rounded-lg hover:bg-gray-700 <%= title === 'Admin Dashboard' ? 'bg-blue-600' : '' %>">
+                            <i class="fas fa-chart-line mr-2"></i> Dashboard
+                        </a>
+                        <a href="/admin/bots" class="block px-4 py-2 rounded-lg hover:bg-gray-700 <%= title === 'Manage Bots' ? 'bg-blue-600' : '' %>">
+                            <i class="fas fa-robot mr-2"></i> Manage Bots
+                        </a>
+                        <a href="/admin/users" class="block px-4 py-2 rounded-lg hover:bg-gray-700 <%= title === 'Manage Users' ? 'bg-blue-600' : '' %>">
+                            <i class="fas fa-users mr-2"></i> Manage Users
+                        </a>
+                    <% } else { %>
+                        <a href="/user/dashboard" class="block px-4 py-2 rounded-lg hover:bg-gray-700 <%= title === 'Dashboard' ? 'bg-blue-600' : '' %>">
+                            <i class="fas fa-chart-line mr-2"></i> Dashboard
+                        </a>
+                        <a href="/user/profile" class="block px-4 py-2 rounded-lg hover:bg-gray-700 <%= title === 'Profile' ? 'bg-blue-600' : '' %>">
+                            <i class="fas fa-user mr-2"></i> Profile
+                        </a>
+                    <% } %>
+                    <hr class="border-gray-700 my-4">
+                    <button onclick="logout()" class="w-full text-left px-4 py-2 rounded-lg hover:bg-red-600 text-red-400 hover:text-white">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                    </button>
+                </nav>
+            </aside>
+            <main class="flex-1 ml-64 overflow-y-auto">
+                <header class="bg-white shadow-sm sticky top-0 z-40">
+                    <div class="flex items-center justify-between px-6 py-4">
+                        <h2 class="text-xl font-semibold text-gray-800"><%= title %></h2>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-sm text-gray-600">
+                                <i class="fas fa-user mr-1"></i> <%= user.username %>
+                            </span>
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full <%= user.level === 'admin' ? 'bg-red-100 text-red-600' : user.level === 'reseller' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600' %>">
+                                <%= user.level.toUpperCase() %>
+                            </span>
+                        </div>
+                    </div>
+                </header>
+                <div class="p-6">
+                    <%- content %>
+                </div>
+            </main>
+        </div>
+    <% } else { %>
+        <%- content %>
+    <% } %>
+    
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    
+    <script>
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container')
+            const toast = document.createElement('div')
+            toast.className = `toast px-4 py-3 rounded-lg shadow-lg text-white flex items-center space-x-2 ${
+                type === 'success' ? 'bg-green-500' :
+                type === 'error' ? 'bg-red-500' :
+                type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+            }`
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'times-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i><span>${message}</span>`
+            container.appendChild(toast)
+            setTimeout(() => toast.remove(), 3000)
+        }
+        
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' })
+                window.location.href = '/login'
+            } catch (e) {
+                showToast('Logout gagal!', 'error')
+            }
+        }
+    </script>
+</body>
+</html>
