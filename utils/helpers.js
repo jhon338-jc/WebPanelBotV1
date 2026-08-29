@@ -25,3 +25,17 @@ export function sanitizeInput(input) {
     if (typeof input !== 'string') return input
     return input.replace(/[<>]/g, '').trim()
 }
+
+export function userBasePath(level) {
+    const map = {
+        admin: '/admin',
+        premium: '/premium',
+        langganan: '/langganan',
+        member: '/member'
+    }
+    return map[level] || '/member'
+}
+
+export function userDashboardPath(level) {
+    return userBasePath(level) + '/dashboard'
+}

@@ -2,11 +2,13 @@ import { User } from '../models/User.js'
 import { Bot } from '../models/Bot.js'
 import { getBotManager } from '../managers/BotManager.js'
 import { logger } from '../utils/logger.js'
+import { userBasePath, userDashboardPath } from '../utils/helpers.js'
 
 function redirectBack(req, res, message) {
+    const base = userBasePath(req.user.level)
     const redirect = typeof req.query.redirect === 'string' && req.query.redirect.startsWith('/')
         ? req.query.redirect
-        : '/user/dashboard'
+        : base + '/dashboard'
     if (req.query.redirect) return res.redirect(redirect)
     return res.json({ success: true, message })
 }
@@ -14,6 +16,7 @@ function redirectBack(req, res, message) {
 export class UserController {
     static async dashboard(req, res) {
         try {
+            const base = userBasePath(req.user.level)
             const myBots = Bot.getBotByUser(req.user.id).map(bot => {
                 const status = getBotManager().getBotStatus(bot.folder)
                 return {
@@ -36,8 +39,9 @@ export class UserController {
                 })
             }
 
-            res.render('user/dashboard', {
+            res.render('user/_dashboard', {
                 title: 'Dashboard',
+                userBase: base,
                 myBots,
                 availableBots,
                 availableBotList,
@@ -45,6 +49,34 @@ export class UserController {
             })
         } catch (e) {
             logger.error('User dashboard error:', e)
+            res.status(500).render('error', { message: 'Server error', code: 500 })
+        }
+    }
+
+    static async myBots(req, res) {
+        try {
+            const base = userBasePath(req.user.level)
+            const myBots = Bot.getBotByUser(req.user.id).map(bot => {
+                const status = getBotManager().getBotStatus(bot.folder)
+                return {
+                    ...bot,
+                    realtimeStatus: status.status,
+                    connected: status.connected || bot.connected,
+                    pairingCode: status.pairingCode
+                }
+            })
+
+            if (req.baseUrl.startsWith('/api')) {
+                return res.json({ success: true, myBots })
+            }
+
+            res.render('user/_mybots', {
+                title: 'Bots Saya',
+                userBase: base,
+                myBots
+            })
+        } catch (e) {
+            logger.error('User myBots error:', e)
             res.status(500).render('error', { message: 'Server error', code: 500 })
         }
     }

@@ -460,9 +460,16 @@
                         <a href="/admin/users" class="nav-link <%= title === 'Manage Users' ? 'active' : '' %>">
                             <i class="fas fa-users"></i> Manage Users
                         </a>
-                    <% } else { %>
-                        <a href="/user/dashboard" class="nav-link <%= title === 'Dashboard' ? 'active' : '' %>">
+                    <% } else {
+                        const baseUrl = user.level === 'premium' ? '/premium'
+                                      : user.level === 'langganan' ? '/langganan'
+                                      : '/member';
+                    %>
+                        <a href="<%= baseUrl %>/dashboard" class="nav-link <%= title === 'Dashboard' ? 'active' : '' %>">
                             <i class="fas fa-chart-line"></i> Dashboard
+                        </a>
+                        <a href="<%= baseUrl %>/bots" class="nav-link <%= title === 'Bots Saya' ? 'active' : '' %>">
+                            <i class="fas fa-robot"></i> Bots Saya
                         </a>
                         <a href="/user/profile" class="nav-link <%= title === 'Profile' ? 'active' : '' %>">
                             <i class="fas fa-user"></i> Profile

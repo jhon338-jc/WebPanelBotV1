@@ -2,19 +2,20 @@ import express from 'express'
 import { AuthController } from '../../controllers/AuthController.js'
 import { optionalAuth } from '../../middleware/auth.js'
 import { loginLimiter } from '../../middleware/rateLimit.js'
+import { userDashboardPath } from '../../utils/helpers.js'
 
 const router = express.Router()
 
 router.get('/login', optionalAuth, (req, res) => {
     if (req.user) {
-        return res.redirect(req.user.level === 'admin' ? '/admin/dashboard' : '/user/dashboard')
+        return res.redirect(userDashboardPath(req.user.level))
     }
     res.render('auth/login', { title: 'Login' })
 })
 
 router.get('/register', optionalAuth, (req, res) => {
     if (req.user) {
-        return res.redirect(req.user.level === 'admin' ? '/admin/dashboard' : '/user/dashboard')
+        return res.redirect(userDashboardPath(req.user.level))
     }
     res.render('auth/register', { title: 'Register' })
 })

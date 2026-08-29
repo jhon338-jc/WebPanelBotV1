@@ -1,0 +1,132 @@
+<% content = `
+<div class="space-y">
+    <div class="flex-bt">
+        <h3 class="card-title" style="font-size:20px;margin-bottom:0"><i class="fas fa-robot"></i> Bots Saya</h3>
+        <a href="${userBase}/dashboard" class="btn-brutal btn-brutal-sm btn-blue"><i class="fas fa-chart-line"></i> Dashboard</a>
+    </div>
+
+    <div class="card-brutal">
+        ${myBots.length === 0 ? `
+            <div style="text-align:center;padding:40px 0">
+                <i class="fas fa-robot" style="font-size:44px;color:#b9b4a6"></i>
+                <p class="mt-16">Kamu belum punya bot</p>
+                <p class="muted">Assign bot dari halaman dashboard</p>
+                <a href="${userBase}/dashboard" class="btn-brutal btn-brutal-sm btn-green mt-16" style="margin-top:16px;display:inline-flex"><i class="fas fa-plus-circle"></i> Assign Bot</a>
+            </div>
+        ` : `
+            <div class="space-y">
+                ${myBots.map(bot => `
+                    <div style="border:var(--border-med);background:var(--bg-body);box-shadow:var(--shadow-sm);padding:14px" class="flex-bt">
+                        <div>
+                            <p style="font-family:'Archivo Black',sans-serif;text-transform:uppercase"><i class="fas fa-robot"></i> ${bot.folder}</p>
+                            <span class="badge ${bot.connected ? 'badge-green' : 'badge-gray'}" style="margin-top:6px">
+                                ${bot.connected ? 'Connected' : 'Stopped'}
+                            </span>
+                        </div>
+                        <div class="row">
+                            ${!bot.connected ? `
+                                <a href="/api/user/bots/${bot.id}/connect?redirect=${userBase}/bots" class="btn-brutal btn-brutal-sm btn-green"><i class="fas fa-plug"></i> Connect</a>
+                            ` : `
+                                <a href="/api/user/bots/${bot.id}/disconnect?redirect=${userBase}/bots" class="btn-brutal btn-brutal-sm btn-red"><i class="fas fa-unplug"></i> Disconnect</a>
+                            `}
+                            <a href="/api/user/bots/${bot.id}/release?redirect=${userBase}/bots" class="btn-brutal btn-brutal-sm btn-yellow" onclick="event.preventDefault(); confirmMyRelease(${bot.id}, '${bot.folder}')" title="Release bot"><i class="fas fa-times"></i> Release</a>
+                            <button onclick="confirmMyLogout(${bot.id}, '${bot.folder}')" class="btn-brutal btn-brutal-sm btn-dark" title="Logout dari WhatsApp"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                            <button onclick="showMyLog(${bot.id}, '${bot.folder}')" class="btn-brutal btn-brutal-sm btn-blue"><i class="fas fa-terminal"></i> Log</button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `}
+    </div>
+
+    <div class="card-brutal">
+        <div class="flex-bt mb-16">
+            <h3 class="card-title" style="margin-bottom:0"><i class="fas fa-terminal"></i> Log Terminal: <span id="my-log-bot-name" style="color:#118ab2">-</span></h3>
+            <div class="row">
+                <button onclick="copyMyLog()" class="btn-brutal btn-brutal-sm btn-blue"><i class="fas fa-copy"></i> Copy</button>
+                <button onclick="clearMyLog()" class="btn-brutal btn-brutal-sm btn-dark"><i class="fas fa-broom"></i> Bersihkan</button>
+            </div>
+        </div>
+        <div id="my-log-viewer" class="logbox" style="height:300px;user-select:text">
+            <p class="log-info">Klik tombol Log pada bot untuk melihat log...</p>
+        </div>
+    </div>
+</div>
+` %>
+
+<%- include('../layouts/main', { title: title, content: content }) %>
+
+<script>
+    const USER_BASE = '<%= userBase %>'
+    let myCurrentBot = null
+    let myLogTimer = null
+
+    async function showMyLog(id, folder) {
+        myCurrentBot = { id, folder }
+        document.getElementById('my-log-bot-name').textContent = folder
+        const viewer = document.getElementById('my-log-viewer')
+        try {
+            const res = await fetch(`/api/user/bots/${id}/logs`)
+            const data = await res.json()
+            if (data.success) {
+                const rows = data.logs.slice(-100).map(l =>
+                    '<div class="' + (l.level === 'error' ? 'log-error' : l.level === 'warn' ? 'log-warn' : 'log-info') + '">[' + new Date(l.timestamp).toLocaleTimeString('id-ID') + '] ' + l.message + '</div>'
+                ).join('')
+                viewer.innerHTML = rows || '<p class="log-info">Belum ada log</p>'
+                viewer.scrollTop = viewer.scrollHeight
+            }
+        } catch (e) {}
+        if (myLogTimer) clearInterval(myLogTimer)
+        myLogTimer = setInterval(() => { if (myCurrentBot) showMyLog(myCurrentBot.id, myCurrentBot.folder) }, 10000)
+    }
+
+    function copyMyLog() {
+        const viewer = document.getElementById('my-log-viewer')
+        const text = viewer.innerText || viewer.textContent
+        const done = () => showToast('Log berhasil di-copy!', 'success')
+        if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done))
+        } else {
+            fallbackCopy(text, done)
+        }
+    }
+
+    function fallbackCopy(text, done) {
+        const ta = document.createElement('textarea')
+        ta.value = text
+        ta.style.position = 'fixed'
+        ta.style.opacity = '0'
+        document.body.appendChild(ta)
+        ta.select()
+        try { document.execCommand('copy') } catch (e) {}
+        document.body.removeChild(ta)
+        done && done()
+    }
+
+    function clearMyLog() {
+        if (myLogTimer) clearInterval(myLogTimer)
+        myCurrentBot = null
+        document.getElementById('my-log-bot-name').textContent = '-'
+        document.getElementById('my-log-viewer').innerHTML = '<p class="log-info">Klik tombol Log pada bot untuk melihat log...</p>'
+    }
+
+    setInterval(() => { window.location.reload() }, 15000)
+
+    function confirmMyLogout(id, folder) {
+        brutalConfirm({
+            title: 'Logout Bot',
+            message: `Yakin ingin LOGOUT ${folder}? Bot akan dikeluarkan dari WhatsApp dan kamu harus pairing ulang jika ingin memakainya lagi.`,
+            confirmText: 'Logout',
+            onConfirm: () => { window.location.href = `/api/user/bots/${id}/logout?redirect=${USER_BASE}/bots` }
+        })
+    }
+
+    function confirmMyRelease(id, folder) {
+        brutalConfirm({
+            title: 'Release Bot',
+            message: `Yakin ingin melepas ${folder}? Quota kamu akan berkurang 1 dan bot tidak bisa dipakai lagi sampai admin menambah quota.`,
+            confirmText: 'Release',
+            onConfirm: () => { window.location.href = `/api/user/bots/${id}/release?redirect=${USER_BASE}/bots` }
+        })
+    }
+</script>

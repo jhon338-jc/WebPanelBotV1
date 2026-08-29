@@ -1,5 +1,5 @@
 import { User } from '../models/User.js'
-import { generateToken, verifyToken, sanitizeInput } from '../utils/helpers.js'
+import { generateToken, verifyToken, sanitizeInput, userDashboardPath } from '../utils/helpers.js'
 import { logger } from '../utils/logger.js'
 
 export class AuthController {
@@ -61,7 +61,7 @@ export class AuthController {
             return res.json({
                 success: true,
                 message: 'Login berhasil!',
-                redirect: user.level === 'admin' ? '/admin/dashboard' : '/user/dashboard'
+                redirect: userDashboardPath(user.level)
             })
         } catch (e) {
             logger.error('Login error:', e)

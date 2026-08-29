@@ -32,7 +32,10 @@
     </div>
 
     <div class="card-brutal">
-        <h3 class="card-title"><i class="fas fa-robot"></i> Bot Saya</h3>
+        <div class="flex-bt mb-16">
+            <h3 class="card-title" style="margin-bottom:0"><i class="fas fa-robot"></i> Bot Saya</h3>
+            <a href="${userBase}/bots" class="btn-brutal btn-brutal-sm btn-blue"><i class="fas fa-robot"></i> Lihat Bots Saya</a>
+        </div>
         ${myBots.length === 0 ? `
             <div style="text-align:center;padding:34px 0">
                 <i class="fas fa-robot" style="font-size:40px;color:#b9b4a6"></i>
@@ -51,11 +54,11 @@
                         </div>
                         <div class="row">
                             ${!bot.connected ? `
-                                <a href="/api/user/bots/${bot.id}/connect?redirect=/user/dashboard" class="btn-brutal btn-brutal-sm btn-green"><i class="fas fa-plug"></i> Connect</a>
+                                <a href="/api/user/bots/${bot.id}/connect?redirect=${userBase}/dashboard" class="btn-brutal btn-brutal-sm btn-green"><i class="fas fa-plug"></i> Connect</a>
                             ` : `
-                                <a href="/api/user/bots/${bot.id}/disconnect?redirect=/user/dashboard" class="btn-brutal btn-brutal-sm btn-red"><i class="fas fa-unplug"></i> Disconnect</a>
+                                <a href="/api/user/bots/${bot.id}/disconnect?redirect=${userBase}/dashboard" class="btn-brutal btn-brutal-sm btn-red"><i class="fas fa-unplug"></i> Disconnect</a>
                             `}
-                            <a href="/api/user/bots/${bot.id}/release?redirect=/user/dashboard" class="btn-brutal btn-brutal-sm btn-yellow" onclick="event.preventDefault(); confirmUserRelease(${bot.id}, '${bot.folder}')" title="Release bot"><i class="fas fa-times"></i></a>
+                            <a href="/api/user/bots/${bot.id}/release?redirect=${userBase}/dashboard" class="btn-brutal btn-brutal-sm btn-yellow" onclick="event.preventDefault(); confirmUserRelease(${bot.id}, '${bot.folder}')" title="Release bot"><i class="fas fa-times"></i></a>
                             <button onclick="confirmUserLogout(${bot.id}, '${bot.folder}')" class="btn-brutal btn-brutal-sm btn-dark" title="Logout dari WhatsApp"><i class="fas fa-sign-out-alt"></i></button>
                             <button onclick="showBotLog(${bot.id}, '${bot.folder}')" class="btn-brutal btn-brutal-sm btn-blue"><i class="fas fa-terminal"></i> Log</button>
                         </div>
@@ -76,7 +79,7 @@
         ` : availableBots > 0 ? `
             <div class="grid-bots" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">
                 ${availableBotList.map(b => `
-                    <a href="/api/user/bots/assign?bot_id=${b.id}&redirect=/user/dashboard"
+                    <a href="/api/user/bots/assign?bot_id=${b.id}&redirect=${userBase}/dashboard"
                        class="bot-mini" style="transition:all 0.12s ease" title="Assign ${b.folder}">
                         <i class="fas fa-robot" style="font-size:22px;color:#b9b4a6"></i>
                         <p style="font-family:'Archivo Black',sans-serif;font-size:13px;margin-top:8px">${b.folder}</p>
@@ -101,9 +104,10 @@
 </div>
 ` %>
 
-<%- include('../layouts/main', { title: 'Dashboard', content: content }) %>
+<%- include('../layouts/main', { title: title, content: content }) %>
 
 <script>
+    const USER_BASE = '<%= userBase %>'
     let userCurrentBot = null
     let userLogTimer = null
 
@@ -163,7 +167,7 @@
             title: 'Logout Bot',
             message: `Yakin ingin LOGOUT ${folder}? Bot akan dikeluarkan dari WhatsApp dan kamu harus pairing ulang jika ingin memakainya lagi.`,
             confirmText: 'Logout',
-            onConfirm: () => { window.location.href = `/api/user/bots/${id}/logout?redirect=/user/dashboard` }
+            onConfirm: () => { window.location.href = `/api/user/bots/${id}/logout?redirect=${USER_BASE}/dashboard` }
         })
     }
 
@@ -172,7 +176,7 @@
             title: 'Release Bot',
             message: `Yakin ingin melepas ${folder}? Quota kamu akan berkurang 1 dan bot tidak bisa dipakai lagi sampai admin menambah quota.`,
             confirmText: 'Release',
-            onConfirm: () => { window.location.href = `/api/user/bots/${id}/release?redirect=/user/dashboard` }
+            onConfirm: () => { window.location.href = `/api/user/bots/${id}/release?redirect=${USER_BASE}/dashboard` }
         })
     }
 </script>
