@@ -1,4 +1,5 @@
-import Jimp from 'jimp'
+import * as JimpModule from 'jimp'
+const Jimp = JimpModule.Jimp || JimpModule.default
 
 let handler = async (m, { conn }) => {
 if (!m.isOwner) return conn.sendMessage(m.chat, { text: '❌ Khusus Owner!' })

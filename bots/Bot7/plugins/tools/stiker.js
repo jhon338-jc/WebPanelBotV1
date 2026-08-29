@@ -1,4 +1,5 @@
-import Jimp from 'jimp'
+import * as JimpModule from 'jimp'
+const Jimp = JimpModule.Jimp || JimpModule.default
 import { execSync } from 'child_process'
 import fs from 'fs'
 import os from 'os'

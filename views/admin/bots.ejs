@@ -3,7 +3,7 @@
     <div class="flex-bt">
         <h3 class="card-title" style="font-size:20px;margin-bottom:0"><i class="fas fa-robot"></i> Manage Bots</h3>
         <div class="row">
-            <span class="badge badge-blue"><i class="fas fa-sync"></i> Auto-refresh 5s</span>
+            <span class="badge badge-blue"><i class="fas fa-sync"></i> Auto-refresh 15s</span>
             <a href="/admin/bots" class="btn-brutal btn-brutal-sm btn-blue"><i class="fas fa-sync"></i> Refresh</a>
         </div>
     </div>
@@ -27,12 +27,17 @@
                     </div>
 
                     ${bot.pairingCode ? `
-                        <div class="pairing-box">
-                            <p style="font-family:'Archivo Black',sans-serif;text-transform:uppercase;font-size:11px">
-                                <i class="fas fa-link"></i> Kode Pairing
-                            </p>
-                            <p class="pairing-code">${bot.pairingCode}</p>
-                            <p class="muted" style="margin-top:6px">Buka WhatsApp &rarr; Perangkat Tertaut &rarr; Pairing</p>
+                        <div class="pairing-box" id="pairing-${bot.folder}">
+                            <div class="flex-bt mb-8">
+                                <p style="font-family:'Archivo Black',sans-serif;text-transform:uppercase;font-size:11px">
+                                    <i class="fas fa-link"></i> Kode Pairing
+                                </p>
+                                <button class="btn-brutal btn-brutal-sm btn-yellow" style="padding:4px 10px;font-size:10px" onclick="copyPairing('${bot.folder}', this)">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                            <p class="pairing-code" style="font-size:30px;background:var(--color-black);color:#fff3cd;border:3px solid var(--color-black);padding:10px;text-align:center;margin:8px 0">${bot.pairingCode}</p>
+                            <p class="muted" style="margin-top:6px">Buka WhatsApp &rarr; Perangkat Tertaut &rarr; Pairing Perangkat &rarr; Masukkan kode ini</p>
                         </div>
                     ` : ''}
 
@@ -63,7 +68,7 @@
                     </div>
                 </div>
                 <div class="logbox" data-folder="${bot.folder}">
-                    ${logs.length > 0 ? logs.map(l =>
+                    ${logs.length > 0 ? logs.slice(-20).map(l =>
                         '<div class="' + (l.level === 'error' ? 'log-error' : l.level === 'warn' ? 'log-warn' : 'log-info') + '">[' + new Date(l.timestamp).toLocaleTimeString('id-ID') + '] ' + l.message + '</div>'
                     ).join('') : '<p class="log-info">Belum ada log</p>'}
                 </div>
@@ -120,7 +125,34 @@
         }
     })
 
-    setTimeout(() => { location.reload() }, 5000)
+    setTimeout(() => { location.reload() }, 15000)
+
+    function copyPairing(folder, btn) {
+        const el = document.querySelector(`#pairing-${folder} .pairing-code`)
+        if (!el) return
+        const code = el.textContent.trim()
+        const done = () => {
+            btn.innerHTML = '<i class="fas fa-check"></i> Ter-copy'
+            setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copy' }, 1500)
+        }
+        if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(code).then(done).catch(() => fallbackCopy(code, done))
+        } else {
+            fallbackCopy(code, done)
+        }
+    }
+
+    function fallbackCopy(text, done) {
+        const ta = document.createElement('textarea')
+        ta.value = text
+        ta.style.position = 'fixed'
+        ta.style.opacity = '0'
+        document.body.appendChild(ta)
+        ta.select()
+        try { document.execCommand('copy') } catch (e) {}
+        document.body.removeChild(ta)
+        done()
+    }
 
     function confirmLogout(folder) {
         if (confirm(`Yakin ingin LOGOUT ${folder}?\n\nBot akan dikeluarkan dari WhatsApp dan harus pairing ulang dari awal.`)) {

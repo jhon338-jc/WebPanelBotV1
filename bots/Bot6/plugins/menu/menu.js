@@ -1,5 +1,6 @@
 import fs from 'fs'
-import Jimp from 'jimp'
+import * as JimpModule from 'jimp'
+const Jimp = JimpModule.Jimp || JimpModule.default
 import config from '../../config.json' with { type: 'json' }
 import { plugins } from '../../handler.js'
 import os from 'os'

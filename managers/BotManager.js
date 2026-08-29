@@ -268,7 +268,7 @@ export class BotManager extends EventEmitter {
         if (!clean) return
         const logs = this.logs.get(folder) || []
         logs.push({ level, message: clean, timestamp: new Date().toISOString() })
-        if (logs.length > 200) logs.shift()
+        if (logs.length > 100) logs.shift()
         this.logs.set(folder, logs)
     }
 

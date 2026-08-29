@@ -59,6 +59,25 @@ for i in $(seq 1 10); do
     fi
 done
 
+# 4) Auto-create database files tiap bot (jika belum ada)
+#    Folder bots/*/database di-.gitignore, jadi setelah git pull pasti kosong.
+#    Tanpa file ini bot error ENOENT (monitor.json / role.json).
+echo "[*] Pastikan database files ada di Bot1..Bot10 ..."
+for i in $(seq 1 10); do
+    B="$ROOT/bots/Bot$i"
+    if [ -d "$B" ]; then
+        mkdir -p "$B/database"
+        if [ ! -f "$B/database/monitor.json" ]; then
+            echo '{"groups":[],"waiting":false}' > "$B/database/monitor.json"
+            echo "    Bot$i/database/monitor.json -> created"
+        fi
+        if [ ! -f "$B/database/role.json" ]; then
+            echo '{"owner":[],"premium":[]}' > "$B/database/role.json"
+            echo "    Bot$i/database/role.json -> created"
+        fi
+    fi
+done
+
 echo ""
 echo "================================================"
 echo "  Setup selesai!"
