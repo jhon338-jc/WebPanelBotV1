@@ -2,7 +2,7 @@
 <div class="space-y">
     <div style="background:var(--color-black);color:var(--bg-body);border:var(--border-thick);box-shadow:var(--shadow-solid);padding:26px">
         <h3 style="font-family:'Archivo Black',sans-serif;text-transform:uppercase;font-size:22px;color:var(--accent)">
-            Selamat Datang, ${user.username}! 👋
+            <i class="fas fa-hand-peace"></i> Selamat Datang, ${user.username}!
         </h3>
         <p class="mb-8" style="margin-top:8px;color:#c9c6ba">Kelola bot WhatsApp kamu disini</p>
     </div>
@@ -46,7 +46,7 @@
                             ` : `
                                 <a href="/api/user/bots/${bot.id}/disconnect?redirect=/user/dashboard" class="btn-brutal btn-brutal-sm btn-red"><i class="fas fa-unplug"></i> Disconnect</a>
                             `}
-                            <a href="/api/user/bots/${bot.id}/release?redirect=/user/dashboard" class="btn-brutal btn-brutal-sm btn-yellow"><i class="fas fa-times"></i></a>
+                            <a href="/api/user/bots/${bot.id}/release?redirect=/user/dashboard" class="btn-brutal btn-brutal-sm btn-yellow" onclick="event.preventDefault(); confirmUserRelease(${bot.id}, '${bot.folder}')"><i class="fas fa-times"></i></a>
                             <button onclick="confirmUserLogout(${bot.id}, '${bot.folder}')" class="btn-brutal btn-brutal-sm btn-dark"><i class="fas fa-sign-out-alt"></i></button>
                             <button onclick="showBotLog(${bot.id}, '${bot.folder}')" class="btn-brutal btn-brutal-sm btn-blue"><i class="fas fa-terminal"></i> Log</button>
                         </div>
@@ -122,8 +122,20 @@
     setInterval(() => { window.location.reload() }, 15000)
 
     function confirmUserLogout(id, folder) {
-        if (confirm(`Yakin ingin LOGOUT ${folder}?\n\nBot akan dikeluarkan dari WhatsApp dan kamu harus pairing ulang jika ingin memakainya lagi.`)) {
-            window.location.href = `/api/user/bots/${id}/logout?redirect=/user/dashboard`
-        }
+        brutalConfirm({
+            title: 'Logout Bot',
+            message: `Yakin ingin LOGOUT ${folder}? Bot akan dikeluarkan dari WhatsApp dan kamu harus pairing ulang jika ingin memakainya lagi.`,
+            confirmText: 'Logout',
+            onConfirm: () => { window.location.href = `/api/user/bots/${id}/logout?redirect=/user/dashboard` }
+        })
+    }
+
+    function confirmUserRelease(id, folder) {
+        brutalConfirm({
+            title: 'Release Bot',
+            message: `Yakin ingin melepas ${folder} dari akun kamu? Bot akan dilepaskan dan kamu tidak bisa menggunakannya lagi.`,
+            confirmText: 'Release',
+            onConfirm: () => { window.location.href = `/api/user/bots/${id}/release?redirect=/user/dashboard` }
+        })
     }
 </script>

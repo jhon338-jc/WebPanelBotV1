@@ -43,22 +43,20 @@
 
                     ${bot.waitingInput ? `
                         <div class="input-wait-box">
-                            <p style="font-family:'Archivo Black',sans-serif;text-transform:uppercase;font-size:11px" class="mb-8">
-                                <i class="fas fa-keyboard"></i> Bot meminta input
-                            </p>
-                            <form class="input-form" data-folder="${bot.folder}">
-                                <div class="row" style="flex-wrap:nowrap">
-                                    <input type="text" name="input" placeholder="No. telepon (cth: 628xxx)"
-                                           class="input-brutal input-input" autocomplete="off" style="min-width:0" />
-                                    <button class="btn-brutal btn-brutal-sm btn-blue" type="submit">Kirim</button>
-                                </div>
-                            </form>
+                            <div class="flex-bt">
+                                <p style="font-family:'Archivo Black',sans-serif;text-transform:uppercase;font-size:11px">
+                                    <i class="fas fa-keyboard"></i> Bot meminta input
+                                </p>
+                                <button class="btn-brutal btn-brutal-sm btn-blue" onclick="openPairingInput('${bot.folder}')">
+                                    <i class="fas fa-mobile-alt"></i> Kirim Nomor
+                                </button>
+                            </div>
                         </div>
                     ` : ''}
 
                     <div class="row mt-16">
                         <a href="/api/admin/bots/${bot.folder}/start?redirect=/admin/bots" class="btn-brutal btn-brutal-sm btn-green" style="flex:1"><i class="fas fa-play"></i> Start</a>
-                        <a href="/api/admin/bots/${bot.folder}/stop?redirect=/admin/bots" class="btn-brutal btn-brutal-sm btn-red" style="flex:1"><i class="fas fa-stop"></i> Stop</a>
+                        <button onclick="confirmBotStop('${bot.folder}')" class="btn-brutal btn-brutal-sm btn-red" style="flex:1"><i class="fas fa-stop"></i> Stop</button>
                         <a href="/api/admin/bots/${bot.folder}/restart?redirect=/admin/bots" class="btn-brutal btn-brutal-sm btn-blue" style="flex:1"><i class="fas fa-sync"></i> Restart</a>
                     </div>
                     <div class="mt-8">
@@ -93,18 +91,21 @@
         }
     })
 
-    document.addEventListener('submit', async (e) => {
-        const form = e.target.closest('.input-form')
-        if (!form) return
-        e.preventDefault()
-        const folder = form.dataset.folder
-        const inputValue = form.querySelector('.input-input').value.trim()
+    function openPairingInput(folder) {
+        brutalPrompt({
+            title: 'Input Nomor Telepon',
+            message: 'Masukkan nomor telepon bot (contoh: 628xxx) untuk memulai pairing.',
+            placeholder: '628xxxxxxx',
+            submitText: 'Kirim',
+            onSubmit: (val) => sendBotInput(folder, val)
+        })
+    }
+
+    async function sendBotInput(folder, inputValue) {
         if (!inputValue) {
-            alert('Mohon isi input terlebih dahulu')
+            showToast('Mohon isi input terlebih dahulu', 'warning')
             return
         }
-        const btn = form.querySelector('button')
-        btn.disabled = true
         try {
             const res = await fetch(`/api/admin/bots/${folder}/input`, {
                 method: 'POST',
@@ -113,17 +114,14 @@
             })
             const data = await res.json()
             if (data.success) {
-                form.innerHTML = '<p style="font-family:Archivo Black,monospace;text-transform:uppercase;font-size:11px;color:#118ab2"><i class="fas fa-check"></i> Input terkirim. Tunggu kode pairing...</p>'
+                showToast('Input terkirim! Tunggu kode pairing...', 'success')
             } else {
-                alert(data.message || 'Gagal kirim input')
-                form.querySelector('.input-input').value = ''
+                showToast(data.message || 'Gagal kirim input', 'error')
             }
         } catch (err) {
-            alert('Gagal terhubung ke server')
-        } finally {
-            btn.disabled = false
+            showToast('Gagal terhubung ke server', 'error')
         }
-    })
+    }
 
     setTimeout(() => { location.reload() }, 15000)
 
@@ -155,8 +153,20 @@
     }
 
     function confirmLogout(folder) {
-        if (confirm(`Yakin ingin LOGOUT ${folder}?\n\nBot akan dikeluarkan dari WhatsApp dan harus pairing ulang dari awal.`)) {
-            window.location.href = `/api/admin/bots/${folder}/logout?redirect=/admin/bots`
-        }
+        brutalConfirm({
+            title: 'Logout Bot',
+            message: `Yakin ingin LOGOUT ${folder}? Bot akan dikeluarkan dari WhatsApp dan harus pairing ulang dari awal.`,
+            confirmText: 'Logout',
+            onConfirm: () => { window.location.href = `/api/admin/bots/${folder}/logout?redirect=/admin/bots` }
+        })
+    }
+
+    function confirmBotStop(folder) {
+        brutalConfirm({
+            title: 'Stop Bot',
+            message: `Yakin ingin menghentikan ${folder}?`,
+            confirmText: 'Stop',
+            onConfirm: () => { window.location.href = `/api/admin/bots/${folder}/stop?redirect=/admin/bots` }
+        })
     }
 </script>

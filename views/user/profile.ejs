@@ -25,17 +25,26 @@
     <div class="card-brutal">
         <h3 class="card-title"><i class="fas fa-envelope"></i> Update Email</h3>
         <form id="update-email-form" class="row">
-            <input type="email" name="email" value="${user.email || ''}" class="input-brutal" placeholder="Email baru" style="flex:1;min-width:180px">
-            <button type="submit" class="btn-brutal btn-blue">Update Email</button>
+            <div class="input-wrap" style="flex:1;min-width:180px">
+                <i class="fas fa-envelope"></i>
+                <input type="email" name="email" value="${user.email || ''}" class="input-brutal" placeholder="Email baru">
+            </div>
+            <button type="submit" class="btn-brutal btn-blue"><i class="fas fa-save"></i> Update Email</button>
         </form>
     </div>
 
     <div class="card-brutal">
         <h3 class="card-title"><i class="fas fa-lock"></i> Ganti Password</h3>
         <form id="change-password-form" class="space-y">
-            <input type="password" name="old_password" required class="input-brutal" placeholder="Password lama">
-            <input type="password" name="new_password" required minlength="6" class="input-brutal" placeholder="Password baru (min 6)">
-            <button type="submit" class="btn-brutal btn-green" style="align-self:flex-start">Ganti Password</button>
+            <div class="input-wrap">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="old_password" required class="input-brutal" placeholder="Password lama">
+            </div>
+            <div class="input-wrap">
+                <i class="fas fa-key"></i>
+                <input type="password" name="new_password" required minlength="6" class="input-brutal" placeholder="Password baru (min 6)">
+            </div>
+            <button type="submit" class="btn-brutal btn-green" style="align-self:flex-start"><i class="fas fa-save"></i> Ganti Password</button>
         </form>
     </div>
 </div>

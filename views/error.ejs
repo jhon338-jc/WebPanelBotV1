@@ -6,6 +6,7 @@
     <title>Error <%= code %></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root { --bg-body: #f4f2eb; --color-black: #090909; --accent: #ffb703;
             --border-thick: 4px solid var(--color-black);
@@ -48,6 +49,7 @@
 </head>
 <body>
     <div class="error-wrap">
+        <i class="fas fa-exclamation-triangle" style="font-size:56px;color:var(--color-black);margin-bottom:10px"></i>
         <div class="error-code"><%= code %></div>
         <p class="error-msg"><%= message %></p>
         <a href="/" class="btn-brutal"><i class="fas fa-arrow-left"></i> Kembali</a>

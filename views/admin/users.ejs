@@ -38,7 +38,7 @@
                         <td>${user.bot_quota}</td>
                         <td>
                             <div class="row" style="gap:6px">
-                                <button onclick="toggleUserStatus(${user.id}, '${user.status}')" class="btn-brutal btn-brutal-sm ${user.status === 'active' ? 'btn-red' : 'btn-green'}">
+                                <button onclick="toggleUserStatus(${user.id}, '${user.username}', '${user.status}')" class="btn-brutal btn-brutal-sm ${user.status === 'active' ? 'btn-red' : 'btn-green'}">
                                     ${user.status === 'active' ? 'Ban' : 'Unban'}
                                 </button>
                                 <button onclick="deleteUser(${user.id}, '${user.username}')" class="btn-brutal btn-brutal-sm btn-dark">
@@ -59,27 +59,39 @@
         <form id="add-user-form" class="space-y">
             <div class="field">
                 <label>Username</label>
-                <input type="text" name="username" placeholder="Username" required class="input-brutal">
+                <div class="input-wrap">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="username" placeholder="Username" required class="input-brutal">
+                </div>
             </div>
             <div class="field">
                 <label>Password</label>
-                <input type="password" name="password" placeholder="Password" required class="input-brutal">
+                <div class="input-wrap">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" placeholder="Password" required class="input-brutal">
+                </div>
             </div>
             <div class="field">
                 <label>Email (opsional)</label>
-                <input type="email" name="email" placeholder="Email (opsional)" class="input-brutal">
+                <div class="input-wrap">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" name="email" placeholder="Email (opsional)" class="input-brutal">
+                </div>
             </div>
             <div class="field">
                 <label>Level</label>
-                <select name="level" class="input-brutal">
-                    <option value="member">Member</option>
-                    <option value="reseller">Reseller</option>
-                    <option value="admin">Admin</option>
-                </select>
+                <div class="input-wrap">
+                    <i class="fas fa-user-tag"></i>
+                    <select name="level" class="input-brutal">
+                        <option value="member">Member</option>
+                        <option value="reseller">Reseller</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
             </div>
             <div class="row">
-                <button type="submit" class="btn-brutal btn-green" style="flex:1">Tambah</button>
-                <button type="button" onclick="closeAddUserModal()" class="btn-brutal btn-dark">Batal</button>
+                <button type="submit" class="btn-brutal btn-green" style="flex:1"><i class="fas fa-save"></i> Tambah</button>
+                <button type="button" onclick="closeAddUserModal()" class="btn-brutal btn-dark"><i class="fas fa-times"></i> Batal</button>
             </div>
         </form>
     </div>
@@ -116,8 +128,20 @@
         }
     })
 
-    async function toggleUserStatus(id, currentStatus) {
-        const newStatus = currentStatus === 'active' ? 'banned' : 'active'
+    function toggleUserStatus(id, username, currentStatus) {
+        if (currentStatus === 'active') {
+            brutalConfirm({
+                title: 'Ban User',
+                message: `Yakin ingin mem-banned user ${username}? User tidak bisa login lagi.`,
+                confirmText: 'Ban',
+                onConfirm: () => setUserStatus(id, 'banned')
+            })
+        } else {
+            setUserStatus(id, 'active')
+        }
+    }
+
+    async function setUserStatus(id, newStatus) {
         const res = await fetch(`/api/admin/users/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -128,11 +152,17 @@
         window.location.reload()
     }
 
-    async function deleteUser(id, username) {
-        if (!confirm(`Hapus user ${username}?`)) return
-        const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' })
-        const result = await res.json()
-        showToast(result.message, result.success ? 'success' : 'error')
-        window.location.reload()
+    function deleteUser(id, username) {
+        brutalConfirm({
+            title: 'Hapus User',
+            message: `Yakin ingin menghapus user ${username}? Tindakan ini tidak bisa dibatalkan.`,
+            confirmText: 'Hapus',
+            onConfirm: async () => {
+                const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' })
+                const result = await res.json()
+                showToast(result.message, result.success ? 'success' : 'error')
+                window.location.reload()
+            }
+        })
     }
 </script>
