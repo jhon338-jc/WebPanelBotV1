@@ -1,7 +1,6 @@
 import express from 'express'
 import http from 'http'
 import { Server as SocketIO } from 'socket.io'
-import session from 'express-session'
 import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import compression from 'compression'
@@ -37,18 +36,10 @@ app.use(cors())
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 app.use(cookieParser())
-app.use(session({
-    secret: config.sessionSecret,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        httpOnly: true,
-        maxAge: config.sessionLifetime
-    }
-}))
 
-// Disable cache untuk API
-app.use('/api', (req, res, next) => {
+// Disable cache untuk SEMUA halaman/API agar browser tidak menyajikan halaman lama
+// (browser yang menyimpan cache bisa menampilkan dashboard member dari user lain).
+app.use((req, res, next) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
     res.setHeader('Pragma', 'no-cache')
     res.setHeader('Expires', '0')

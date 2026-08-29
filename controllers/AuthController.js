@@ -52,8 +52,9 @@ export class AuthController {
 
             res.cookie('token', token, {
                 httpOnly: true,
-                maxAge: 7 * 24 * 60 * 60 * 1000,
-                sameSite: 'strict'
+                sameSite: 'strict',
+                path: '/',
+                maxAge: 7 * 24 * 60 * 60 * 1000
             })
 
             logger.info(`Login: ${username}`)
@@ -76,7 +77,11 @@ export class AuthController {
                 User.incrementTokenVersion(decoded.id)
             }
         }
-        res.clearCookie('token')
+        res.clearCookie('token', {
+            httpOnly: true,
+            sameSite: 'strict',
+            path: '/'
+        })
         return res.json({ success: true, message: 'Logout berhasil!' })
     }
 }
