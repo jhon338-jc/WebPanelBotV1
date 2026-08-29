@@ -1,97 +1,75 @@
 <% content = `
-<div class="space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="card bg-white rounded-xl p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-500">Total Bots</p>
-                    <p class="text-3xl font-bold text-gray-800">${stats.totalBots}</p>
-                </div>
-                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-robot text-blue-600 text-xl"></i>
-                </div>
+<div class="space-y">
+    <div class="grid-stats">
+        <div class="card-brutal stat-card flex-bt">
+            <div>
+                <p class="stat-label">Total Bots</p>
+                <p class="stat-value">${stats.totalBots}</p>
             </div>
+            <div class="stat-icon" style="background:#8ecae6"><i class="fas fa-robot"></i></div>
         </div>
-        <div class="card bg-white rounded-xl p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-500">Bot Aktif</p>
-                    <p class="text-3xl font-bold text-green-600">${stats.activeBots}</p>
-                </div>
-                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                </div>
+        <div class="card-brutal stat-card flex-bt">
+            <div>
+                <p class="stat-label">Bot Aktif</p>
+                <p class="stat-value" style="color:#118ab2">${stats.activeBots}</p>
             </div>
+            <div class="stat-icon" style="background:#7bf1a8"><i class="fas fa-check-circle"></i></div>
         </div>
-        <div class="card bg-white rounded-xl p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-500">Bot Running</p>
-                    <p class="text-3xl font-bold text-purple-600">${stats.runningBots}</p>
-                </div>
-                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-play-circle text-purple-600 text-xl"></i>
-                </div>
+        <div class="card-brutal stat-card flex-bt">
+            <div>
+                <p class="stat-label">Bot Running</p>
+                <p class="stat-value" style="color:#b388eb">${stats.runningBots}</p>
             </div>
+            <div class="stat-icon" style="background:#b388eb"><i class="fas fa-play-circle"></i></div>
         </div>
-        <div class="card bg-white rounded-xl p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-500">Total Users</p>
-                    <p class="text-3xl font-bold text-orange-600">${stats.totalUsers}</p>
-                </div>
-                <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-users text-orange-600 text-xl"></i>
-                </div>
+        <div class="card-brutal stat-card flex-bt">
+            <div>
+                <p class="stat-label">Total Users</p>
+                <p class="stat-value" style="color:#ef8354">${stats.totalUsers}</p>
+            </div>
+            <div class="stat-icon" style="background:#ffb703"><i class="fas fa-users"></i></div>
+        </div>
+    </div>
+
+    <div class="card-brutal">
+        <h3 class="card-title"><i class="fas fa-server"></i> System Information</h3>
+        <div class="grid-bots">
+            <div class="bot-mini">
+                <p class="muted">Node Version</p>
+                <p style="font-weight:700;margin-top:4px">${systemInfo.nodeVersion}</p>
+            </div>
+            <div class="bot-mini">
+                <p class="muted">Platform</p>
+                <p style="font-weight:700;margin-top:4px">${systemInfo.platform} (${systemInfo.arch})</p>
+            </div>
+            <div class="bot-mini">
+                <p class="muted">CPU / RAM</p>
+                <p style="font-weight:700;margin-top:4px">${systemInfo.cpuCount} core / ${systemInfo.processMemory} MB</p>
+            </div>
+            <div class="bot-mini">
+                <p class="muted">Uptime</p>
+                <p style="font-weight:700;margin-top:4px">${Math.floor(systemInfo.uptime / 60)} menit</p>
             </div>
         </div>
     </div>
 
-    <div class="card bg-white rounded-xl p-6 shadow-sm">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">
-            <i class="fas fa-server mr-2 text-blue-600"></i> System Information
-        </h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="text-center p-3 bg-gray-50 rounded-lg">
-                <p class="text-xs text-gray-500">Node Version</p>
-                <p class="text-sm font-semibold">${systemInfo.nodeVersion}</p>
-            </div>
-            <div class="text-center p-3 bg-gray-50 rounded-lg">
-                <p class="text-xs text-gray-500">Platform</p>
-                <p class="text-sm font-semibold">${systemInfo.platform} (${systemInfo.arch})</p>
-            </div>
-            <div class="text-center p-3 bg-gray-50 rounded-lg">
-                <p class="text-xs text-gray-500">CPU / RAM</p>
-                <p class="text-sm font-semibold">${systemInfo.cpuCount} core / ${systemInfo.processMemory} MB</p>
-            </div>
-            <div class="text-center p-3 bg-gray-50 rounded-lg">
-                <p class="text-xs text-gray-500">Uptime</p>
-                <p class="text-sm font-semibold">${Math.floor(systemInfo.uptime / 60)} menit</p>
-            </div>
+    <div class="card-brutal">
+        <div class="flex-bt mb-16">
+            <h3 class="card-title" style="margin-bottom:0"><i class="fas fa-robot"></i> Bot Status Overview</h3>
+            <a href="/admin/bots" class="btn-brutal btn-brutal-sm btn-blue"><i class="fas fa-cog"></i> Manage</a>
         </div>
-    </div>
-
-    <div class="card bg-white rounded-xl p-6 shadow-sm">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-800">
-                <i class="fas fa-robot mr-2 text-blue-600"></i> Bot Status Overview
-            </h3>
-            <a href="/admin/bots" class="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
-                <i class="fas fa-cog mr-1"></i> Manage
-            </a>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div class="grid-bots" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">
             ${bots.map(bot => {
-                const statusColor = bot.connected ? 'bg-green-100 text-green-600' :
-                                    bot.realtimeStatus === 'running' ? 'bg-yellow-100 text-yellow-600' :
-                                    'bg-gray-100 text-gray-600'
+                const statusColor = bot.connected ? 'badge-green' :
+                                    bot.realtimeStatus === 'running' ? 'badge-yellow' :
+                                    'badge-gray'
                 const statusText = bot.connected ? 'Connected' :
                                    bot.realtimeStatus === 'running' ? 'Running' : 'Stopped'
                 return `
-                    <div class="p-3 bg-gray-50 rounded-lg text-center">
-                        <p class="text-sm font-semibold text-gray-800">${bot.folder}</p>
-                        <span class="inline-block mt-1 px-2 py-1 text-xs rounded-full ${statusColor}">${statusText}</span>
-                        ${bot.assigned_username ? `<p class="text-xs text-gray-500 mt-1">${bot.assigned_username}</p>` : ''}
+                    <div class="bot-mini">
+                        <p class="bot-name">${bot.folder}</p>
+                        <span class="badge ${statusColor}" style="margin-top:8px">${statusText}</span>
+                        ${bot.assigned_username ? '<p class="muted mt-8">' + bot.assigned_username + '</p>' : ''}
                     </div>
                 `
             }).join('')}

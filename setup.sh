@@ -29,22 +29,30 @@ else
 fi
 
 # 2) Shared node_modules untuk SEMUA bot (Bot1..Bot10)
-#    Semua bot memakai package.json identik, jadi 1 folder cukup.
+#    Semua bot memakai bats/package.json identik, jadi 1 folder cukup.
 SHARED="$ROOT/bots/node_modules"
-if [ ! -d "$SHARED" ]; then
-    echo "[*] Membuat shared node_modules bot di bots/node_modules ..."
+if [ ! -d "$SHARED" ] || [ ! -d "$SHARED/pino" ]; then
+    echo "[*] Membuat/me-refresh shared node_modules bot di bots/node_modules ..."
     mkdir -p "$ROOT/bots"
     ( cd "$ROOT/bots" && npm install --no-audit --no-fund )
 else
-    echo "[i] bots/node_modules sudah ada, skip."
+    echo "[i] bots/node_modules sudah ada lengkap (pino terdeteksi), skip."
 fi
 
 # 3) Symlink node_modules tiap bot -> shared
+#    Hapus folder node_modules lama (real) lalu ganti symlink ke shared.
 echo "[*] Setup symlink node_modules untuk Bot1..Bot10 ..."
 for i in $(seq 1 10); do
-    B="bots/Bot$i"
+    B="$ROOT/bots/Bot$i"
     if [ -d "$B" ]; then
-        if [ ! -e "$B/node_modules" ]; then
+        if [ -L "$B/node_modules" ]; then
+            echo "    Bot$i -> symlink sudah ada, skip."
+        elif [ -d "$B/node_modules" ]; then
+            echo "    [!] Bot$i punya node_modules biasa, hapus & ganti symlink ..."
+            rm -rf "$B/node_modules"
+            ln -s ../node_modules "$B/node_modules"
+            echo "    Bot$i -> symlink OK"
+        else
             ln -s ../node_modules "$B/node_modules"
             echo "    Bot$i -> symlink OK"
         fi

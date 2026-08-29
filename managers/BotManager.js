@@ -57,18 +57,6 @@ export class BotManager extends EventEmitter {
         }
     }
 
-    resolveOwnerNumber(botPath) {
-        if (process.env.BOT_OWNER_NUMBER) return process.env.BOT_OWNER_NUMBER
-        try {
-            const configPath = path.join(botPath, 'config.json')
-            if (fs.existsSync(configPath)) {
-                const botConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
-                if (botConfig.creator?.[0]) return botConfig.creator[0]
-            }
-        } catch (e) {}
-        return '6285168112952'
-    }
-
     async startBot(folder, userId = null) {
         const botPath = path.join(config.botDir, folder)
         
@@ -87,8 +75,6 @@ export class BotManager extends EventEmitter {
             throw new Error(`Bot ${folder} sudah dipakai user lain`)
         }
 
-        const ownerNumber = this.resolveOwnerNumber(botPath)
-        
         const proc = spawn('node', ['index.js'], {
             cwd: botPath,
             stdio: ['pipe', 'pipe', 'pipe'],
@@ -97,7 +83,7 @@ export class BotManager extends EventEmitter {
                 ...process.env,
                 BOT_FOLDER: folder,
                 BOT_USER_ID: userId || '',
-                BOT_OWNER_NUMBER: ownerNumber
+                BOT_OWNER_NUMBER: ''
             }
         })
         proc.unref()
@@ -128,16 +114,12 @@ export class BotManager extends EventEmitter {
             this.emit('bot-log', { folder, level: 'info', message: text })
             
             // Deteksi saat bot meminta input interaktif (pairing nomor)
+            // Set waitingInput = true sehingga input box muncul di web, user tinggal
+            // mengetik nomor telepon / pilihan lewat panel (tanpa buka terminal).
             const inputPatterns = ['Masukkan nomor telepon', 'Sending Code to :', 'Masukkan', 'Pilih']
             if (inputPatterns.some(p => text.includes(p))) {
                 botData.waitingInput = true
                 this.emit('bot-status', { folder, status: 'waiting-input' })
-                // Fallback: kalau BOT_OWNER_NUMBER tersedia, kirim otomatis
-                const ownerNumber = this.resolveOwnerNumber(botPath)
-                if (ownerNumber) {
-                    botData.waitingInput = false
-                    this.sendInput(folder, ownerNumber)
-                }
             }
             
             const match = text.match(/KODE PAIRING:\s*([A-Z0-9-]+)/i)

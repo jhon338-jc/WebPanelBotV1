@@ -4,57 +4,123 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Jhon338 Panel</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #f4f2eb; --color-black: #090909; --accent: #ffb703;
+            --border-thick: 4px solid var(--color-black);
+            --border-med: 3px solid var(--color-black);
+            --shadow-solid: 5px 5px 0px var(--color-black);
+            --shadow-hover: 2px 2px 0px var(--color-black);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Space Mono', monospace; }
+        body {
+            background-color: var(--bg-body);
+            color: var(--color-black);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .auth-card {
+            background: var(--bg-body);
+            border: var(--border-thick);
+            box-shadow: 10px 10px 0px var(--color-black);
+            width: 100%; max-width: 420px; padding: 32px;
+        }
+        .auth-logo { font-size: 56px; text-align: center; }
+        .auth-title {
+            text-align: center;
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 26px;
+            text-transform: uppercase;
+            -webkit-text-stroke: 1.5px var(--color-black);
+            color: transparent;
+            margin: 8px 0 4px;
+            line-height: 1.1;
+        }
+        .auth-sub { text-align: center; font-size: 12px; color: #5b584d; margin-bottom: 24px; }
+        .error-alert {
+            display: none;
+            border: var(--border-med); background: #ff8fa3; box-shadow: var(--shadow-sm, 3px 3px 0px var(--color-black));
+            padding: 10px 12px; font-size: 13px; font-weight: 700; margin-bottom: 16px;
+        }
+        .error-alert.show { display: block; }
+        .auth-form { display: flex; flex-direction: column; gap: 16px; }
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field label { font-size: 11px; text-transform: uppercase; font-weight: 700; }
+        .input-wrap { position: relative; }
+        .input-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; }
+        .input-brutal {
+            width: 100%;
+            background: var(--bg-body);
+            border: var(--border-med);
+            box-shadow: 3px 3px 0px var(--color-black);
+            padding: 12px 12px 12px 38px;
+            font-size: 14px;
+            outline: none;
+            color: var(--color-black);
+            transition: all 0.12s ease;
+        }
+        .input-brutal:focus { box-shadow: 2px 2px 0px var(--accent); border-color: var(--accent); }
+        .btn-brutal {
+            width: 100%;
+            background: var(--accent);
+            border: var(--border-thick);
+            box-shadow: var(--shadow-solid);
+            padding: 14px;
+            font-family: 'Archivo Black', sans-serif;
+            text-transform: uppercase;
+            font-size: 15px;
+            color: var(--color-black);
+            transition: all 0.12s ease;
+        }
+        .btn-brutal:active { transform: translate(3px,3px); box-shadow: var(--shadow-hover); }
+        .auth-footer { text-align: center; margin-top: 20px; font-size: 13px; }
+        .auth-footer a {
+            font-family: 'Archivo Black', sans-serif; text-transform: uppercase; font-size: 12px;
+            text-decoration: underline; text-underline-offset: 3px;
+        }
+        @media (max-width: 480px) { .auth-card { padding: 24px; box-shadow: 6px 6px 0px var(--color-black); } }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-blue-500 to-purple-600 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-        <div class="text-center mb-8">
-            <div class="text-5xl mb-4">🤖</div>
-            <h1 class="text-2xl font-bold text-gray-800">Jhon338 Panel</h1>
-            <p class="text-gray-600 mt-2">Login untuk mengakses panel bot</p>
-        </div>
-        
-        <div id="error-alert" class="hidden mb-4 p-3 bg-red-100 text-red-600 rounded-lg"></div>
-        
-        <form id="login-form" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                <div class="relative">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                        <i class="fas fa-user"></i>
-                    </span>
-                    <input type="text" name="username" required 
-                           class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           placeholder="Masukkan username">
+<body>
+    <div class="auth-card">
+        <div class="auth-logo">🤖</div>
+        <h1 class="auth-title">Jhon338 Panel</h1>
+        <p class="auth-sub">Login untuk mengakses panel bot</p>
+
+        <div id="error-alert" class="error-alert"></div>
+
+        <form id="login-form" class="auth-form">
+            <div class="field">
+                <label>Username</label>
+                <div class="input-wrap">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="username" required class="input-brutal" placeholder="Masukkan username">
                 </div>
             </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                <div class="relative">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                        <i class="fas fa-lock"></i>
-                    </span>
-                    <input type="password" name="password" required 
-                           class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           placeholder="Masukkan password">
+            <div class="field">
+                <label>Password</label>
+                <div class="input-wrap">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" required class="input-brutal" placeholder="Masukkan password">
                 </div>
             </div>
-            
-            <button type="submit" 
-                    class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-semibold">
+            <button type="submit" class="btn-brutal">
                 <i class="fas fa-sign-in-alt mr-2"></i> Login
             </button>
         </form>
-        
-        <p class="text-center text-gray-600 mt-6">
-            Belum punya akun? 
-            <a href="/register" class="text-blue-600 hover:underline">Daftar disini</a>
+
+        <p class="auth-footer">
+            Belum punya akun?
+            <a href="/register">Daftar disini</a>
         </p>
     </div>
-    
+
     <script>
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault()
@@ -63,28 +129,24 @@
                 username: formData.get('username'),
                 password: formData.get('password')
             }
-            
             const errorAlert = document.getElementById('error-alert')
-            errorAlert.classList.add('hidden')
-            
+            errorAlert.classList.remove('show')
             try {
                 const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 })
-                
                 const result = await res.json()
-                
                 if (result.success) {
                     window.location.href = result.redirect
                 } else {
                     errorAlert.textContent = result.message
-                    errorAlert.classList.remove('hidden')
+                    errorAlert.classList.add('show')
                 }
             } catch (error) {
                 errorAlert.textContent = 'Server error!'
-                errorAlert.classList.remove('hidden')
+                errorAlert.classList.add('show')
             }
         })
     </script>

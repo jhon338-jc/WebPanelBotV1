@@ -1,49 +1,47 @@
 <% content = `
-<div class="space-y-6">
-    <div class="flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-gray-800">
-            <i class="fas fa-users mr-2 text-blue-600"></i> Manage Users
-        </h3>
-        <button onclick="showAddUserModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            <i class="fas fa-plus mr-2"></i> Tambah User
+<div class="space-y">
+    <div class="flex-bt">
+        <h3 class="card-title" style="font-size:20px;margin-bottom:0"><i class="fas fa-users"></i> Manage Users</h3>
+        <button onclick="showAddUserModal()" class="btn-brutal btn-brutal-sm btn-green">
+            <i class="fas fa-plus"></i> Tambah User
         </button>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-        <table class="w-full">
-            <thead class="bg-gray-50">
+    <div class="table-wrap">
+        <table class="b-brutal">
+            <thead>
                 <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Level</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bot Quota</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Level</th>
+                    <th>Status</th>
+                    <th>Bot Quota</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200">
+            <tbody>
                 ${users.length === 0 ? `
-                    <tr><td colspan="6" class="px-4 py-3 text-center text-gray-500">Tidak ada user</td></tr>
+                    <tr><td colspan="6" class="muted" style="text-align:center">Tidak ada user</td></tr>
                 ` : users.map(user => `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 text-sm">${user.id}</td>
-                        <td class="px-4 py-3 text-sm font-medium">
-                            ${user.username}
-                            <p class="text-xs text-gray-400">${user.email || '-'}</p>
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>
+                            <strong>${user.username}</strong>
+                            <p class="muted">${user.email || '-'}</p>
                         </td>
-                        <td class="px-4 py-3">
-                            <span class="px-2 py-1 text-xs rounded-full ${user.level === 'admin' ? 'bg-red-100 text-red-600' : user.level === 'reseller' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}">${user.level}</span>
+                        <td>
+                            <span class="badge ${user.level === 'admin' ? 'badge-red' : user.level === 'reseller' ? 'badge-purple' : 'badge-blue'}">${user.level}</span>
                         </td>
-                        <td class="px-4 py-3">
-                            <span class="px-2 py-1 text-xs rounded-full ${user.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">${user.status}</span>
+                        <td>
+                            <span class="badge ${user.status === 'active' ? 'badge-green' : 'badge-red'}">${user.status}</span>
                         </td>
-                        <td class="px-4 py-3 text-sm">${user.bot_quota}</td>
-                        <td class="px-4 py-3">
-                            <div class="flex space-x-1">
-                                <button onclick="toggleUserStatus(${user.id}, '${user.status}')" class="px-2 py-1 text-xs rounded ${user.status === 'active' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
+                        <td>${user.bot_quota}</td>
+                        <td>
+                            <div class="row" style="gap:6px">
+                                <button onclick="toggleUserStatus(${user.id}, '${user.status}')" class="btn-brutal btn-brutal-sm ${user.status === 'active' ? 'btn-red' : 'btn-green'}">
                                     ${user.status === 'active' ? 'Ban' : 'Unban'}
                                 </button>
-                                <button onclick="deleteUser(${user.id}, '${user.username}')" class="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200">
+                                <button onclick="deleteUser(${user.id}, '${user.username}')" class="btn-brutal btn-brutal-sm btn-dark">
                                     Delete
                                 </button>
                             </div>
@@ -55,21 +53,33 @@
     </div>
 </div>
 
-<div id="add-user-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl w-full max-w-md p-6">
-        <h4 class="font-semibold mb-4">Tambah User</h4>
-        <form id="add-user-form" class="space-y-3">
-            <input type="text" name="username" placeholder="Username" required class="w-full px-3 py-2 border rounded-lg">
-            <input type="password" name="password" placeholder="Password" required class="w-full px-3 py-2 border rounded-lg">
-            <input type="email" name="email" placeholder="Email (opsional)" class="w-full px-3 py-2 border rounded-lg">
-            <select name="level" class="w-full px-3 py-2 border rounded-lg">
-                <option value="member">Member</option>
-                <option value="reseller">Reseller</option>
-                <option value="admin">Admin</option>
-            </select>
-            <div class="flex space-x-2">
-                <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Tambah</button>
-                <button type="button" onclick="closeAddUserModal()" class="px-4 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400">Batal</button>
+<div id="add-user-modal" class="modal">
+    <div class="modal-card">
+        <h4 style="font-family:'Archivo Black',monospace;text-transform:uppercase" class="mb-16">Tambah User</h4>
+        <form id="add-user-form" class="space-y">
+            <div class="field">
+                <label>Username</label>
+                <input type="text" name="username" placeholder="Username" required class="input-brutal">
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Password" required class="input-brutal">
+            </div>
+            <div class="field">
+                <label>Email (opsional)</label>
+                <input type="email" name="email" placeholder="Email (opsional)" class="input-brutal">
+            </div>
+            <div class="field">
+                <label>Level</label>
+                <select name="level" class="input-brutal">
+                    <option value="member">Member</option>
+                    <option value="reseller">Reseller</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="row">
+                <button type="submit" class="btn-brutal btn-green" style="flex:1">Tambah</button>
+                <button type="button" onclick="closeAddUserModal()" class="btn-brutal btn-dark">Batal</button>
             </div>
         </form>
     </div>
@@ -80,11 +90,10 @@
 
 <script>
     function showAddUserModal() {
-        document.getElementById('add-user-modal').classList.remove('hidden')
+        document.getElementById('add-user-modal').classList.add('open')
     }
-
     function closeAddUserModal() {
-        document.getElementById('add-user-modal').classList.add('hidden')
+        document.getElementById('add-user-modal').classList.remove('open')
     }
 
     document.getElementById('add-user-form').addEventListener('submit', async (e) => {

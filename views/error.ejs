@@ -4,13 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Error <%= code %></title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-body: #f4f2eb; --color-black: #090909; --accent: #ffb703;
+            --border-thick: 4px solid var(--color-black);
+            --shadow-solid: 5px 5px 0px var(--color-black);
+            --shadow-hover: 2px 2px 0px var(--color-black); }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Space Mono', monospace; }
+        body {
+            background-color: var(--bg-body);
+            color: var(--color-black);
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px;
+        }
+        .error-wrap { text-align: center; max-width: 520px; }
+        .error-code {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: clamp(96px, 22vw, 180px);
+            line-height: 1;
+            -webkit-text-stroke: 3px var(--color-black);
+            color: transparent;
+        }
+        .error-msg {
+            font-size: 18px; font-weight: 700; margin: 16px 0 28px; text-transform: uppercase;
+        }
+        .btn-brutal {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--accent);
+            border: var(--border-thick);
+            box-shadow: var(--shadow-solid);
+            padding: 14px 28px;
+            font-family: 'Archivo Black', sans-serif;
+            text-transform: uppercase;
+            font-size: 15px;
+            color: var(--color-black);
+            text-decoration: none;
+            transition: all 0.12s ease;
+        }
+        .btn-brutal:active { transform: translate(3px,3px); box-shadow: var(--shadow-hover); }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-    <div class="text-center">
-        <div class="text-6xl font-bold text-gray-300 mb-2"><%= code %></div>
-        <p class="text-gray-600 mb-4"><%= message %></p>
-        <a href="/" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg">Kembali</a>
+<body>
+    <div class="error-wrap">
+        <div class="error-code"><%= code %></div>
+        <p class="error-msg"><%= message %></p>
+        <a href="/" class="btn-brutal"><i class="fas fa-arrow-left"></i> Kembali</a>
     </div>
 </body>
 </html>

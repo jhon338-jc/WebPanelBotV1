@@ -1,0 +1,14 @@
+{
+  "name": "jhon338-bots-shared",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shared dependencies untuk semua bot (Bot1..Bot10). Di-install setup.sh ke bots/node_modules lalu di-symlink ke tiap bot.",
+  "type": "module",
+  "dependencies": {
+    "@whiskeysockets/baileys": "npm:levvleys@latest",
+    "@hapi/boom": "^10.0.1",
+    "jimp": "^0.22.12",
+    "file-type": "^19.0.0",
+    "pino": "^8.17.2"
+  }
+}
