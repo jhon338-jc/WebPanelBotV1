@@ -15,7 +15,7 @@ let handler = async (m, { conn, text }) => {
         let buffer = Buffer.from(await res.arrayBuffer())
         
         let image = await Jimp.read(buffer)
-        image.contain(512, 512)
+        image.contain({ w: 512, h: 512 })
         image.background(0x00000000)
         
         let pngPath = `${os.tmpdir()}/tmp_s_${Date.now()}.png`

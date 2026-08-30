@@ -9,7 +9,7 @@ let handler = async (m, { conn }) => {
     const start = Date.now()
 
     const image = await Jimp.read(fs.readFileSync('./src/img/menu.jpg'))
-    image.resize(400, 400)
+    image.resize({ w: 400, h: 400 })
     const thumb = await image.getBufferAsync(Jimp.MIME_JPEG)
 
     const ping = Date.now() - start
