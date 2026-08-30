@@ -24,7 +24,6 @@ export class BotManager extends EventEmitter {
                 this.bots.set(botInfo.folder, {
                     process: null,
                     status: 'running',
-                    userId: botInfo.assigned_to,
                     pairingCode: null,
                     connected: Boolean(botInfo.connected),
                     waitingInput: false,
@@ -57,7 +56,7 @@ export class BotManager extends EventEmitter {
         }
     }
 
-    async startBot(folder, userId = null) {
+    async startBot(folder) {
         const botPath = path.join(config.botDir, folder)
         
         if (!fs.existsSync(botPath)) {
@@ -71,9 +70,6 @@ export class BotManager extends EventEmitter {
         }
         
         const botInfo = Bot.findByFolder(folder)
-        if (botInfo?.assigned_to && botInfo.assigned_to !== userId) {
-            throw new Error(`Bot ${folder} sudah dipakai user lain`)
-        }
 
         const proc = spawn('node', ['index.js'], {
             cwd: botPath,
@@ -82,7 +78,6 @@ export class BotManager extends EventEmitter {
             env: {
                 ...process.env,
                 BOT_FOLDER: folder,
-                BOT_USER_ID: userId || '',
                 BOT_OWNER_NUMBER: ''
             }
         })
@@ -91,7 +86,6 @@ export class BotManager extends EventEmitter {
         const botData = {
             process: proc,
             status: 'starting',
-            userId: userId,
             pairingCode: null,
             connected: false,
             waitingInput: false,
@@ -158,7 +152,7 @@ export class BotManager extends EventEmitter {
                 this.emit('bot-log', { folder, level: 'warn', message: `Bot ${folder} crash, restart otomatis...` })
                 setTimeout(() => {
                     if (!this.bots.has(folder)) {
-                        this.startBot(folder, botData.userId).catch(e => {
+                        this.startBot(folder).catch(e => {
                             this.addLog(folder, 'error', `Auto-restart gagal: ${e.message}`)
                         })
                     }
@@ -194,11 +188,9 @@ export class BotManager extends EventEmitter {
     }
 
     async restartBot(folder) {
-        const botData = this.bots.get(folder)
-        const userId = botData?.userId
         await this.stopBot(folder)
         await new Promise(r => setTimeout(r, 2000))
-        return this.startBot(folder, userId)
+        return this.startBot(folder)
     }
 
     async logoutBot(folder) {

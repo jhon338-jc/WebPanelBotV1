@@ -1,25 +1,10 @@
 {
-  "users": [
-    {
-      "id": 1,
-      "username": "Bintang",
-      "password": "$2a$10$59RsQTz90o9n6flqGmhwueHrhKyWswv1PvpiTZRoRTiORtlNiE0mq",
-      "email": "sbintanglesmana@gmail.com",
-      "level": "admin",
-      "status": "active",
-      "bot_quota": 1,
-      "expired_at": null,
-      "created_at": "2026-08-29T06:59:13.585Z",
-      "last_login": "2026-08-29T10:28:15.892Z"
-    }
-  ],
   "bots": [
     {
       "id": 1,
       "folder": "Bot1",
       "name": "Bot1",
       "status": "stopped",
-      "assigned_to": null,
       "connected": false,
       "last_active": "2026-08-29T10:36:25.924Z",
       "created_at": "2026-08-29T06:46:31.014Z",
@@ -31,7 +16,6 @@
       "folder": "Bot2",
       "name": "Bot2",
       "status": "stopped",
-      "assigned_to": null,
       "connected": false,
       "last_active": "2026-08-29T10:38:51.747Z",
       "created_at": "2026-08-29T06:46:31.034Z",
@@ -43,7 +27,6 @@
       "folder": "Bot3",
       "name": "Bot3",
       "status": "stopped",
-      "assigned_to": null,
       "connected": false,
       "last_active": "2026-08-29T10:17:04.242Z",
       "created_at": "2026-08-29T06:46:31.035Z",
@@ -55,7 +38,6 @@
       "folder": "Bot4",
       "name": "Bot4",
       "status": "stopped",
-      "assigned_to": null,
       "connected": false,
       "last_active": null,
       "created_at": "2026-08-29T06:46:31.037Z",
@@ -67,7 +49,6 @@
       "folder": "Bot5",
       "name": "Bot5",
       "status": "stopped",
-      "assigned_to": null,
       "connected": false,
       "last_active": null,
       "created_at": "2026-08-29T06:46:31.039Z",
@@ -79,7 +60,6 @@
       "folder": "Bot6",
       "name": "Bot6",
       "status": "stopped",
-      "assigned_to": null,
       "connected": false,
       "last_active": null,
       "created_at": "2026-08-29T06:46:31.041Z",
@@ -91,7 +71,6 @@
       "folder": "Bot7",
       "name": "Bot7",
       "status": "stopped",
-      "assigned_to": null,
       "connected": false,
       "last_active": null,
       "created_at": "2026-08-29T06:46:31.043Z",
@@ -103,7 +82,6 @@
       "folder": "Bot8",
       "name": "Bot8",
       "status": "stopped",
-      "assigned_to": null,
       "connected": false,
       "last_active": null,
       "created_at": "2026-08-29T06:46:31.064Z",
@@ -115,7 +93,6 @@
       "folder": "Bot9",
       "name": "Bot9",
       "status": "stopped",
-      "assigned_to": null,
       "connected": false,
       "last_active": null,
       "created_at": "2026-08-29T06:46:31.067Z",
@@ -127,7 +104,6 @@
       "folder": "Bot10",
       "name": "Bot10",
       "status": "stopped",
-      "assigned_to": null,
       "connected": false,
       "last_active": "2026-08-29T10:14:21.949Z",
       "created_at": "2026-08-29T06:46:31.068Z",
@@ -135,12 +111,9 @@
       "pairingCode": null
     }
   ],
-  "sessions": [],
   "logs": [],
   "counters": {
-    "users": 1,
     "bots": 10,
-    "sessions": 0,
     "logs": 0
   }
 }

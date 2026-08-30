@@ -450,31 +450,18 @@
             <aside class="sidebar" id="sidebar">
                 <div class="brand"><i class="fas fa-robot mr-2"></i> Jhon338 Panel</div>
                 <nav>
-                    <% if (user.level === 'admin') { %>
-                        <a href="/admin/dashboard" class="nav-link <%= title === 'Admin Dashboard' ? 'active' : '' %>">
-                            <i class="fas fa-chart-line"></i> Dashboard
-                        </a>
-                        <a href="/admin/bots" class="nav-link <%= title === 'Manage Bots' ? 'active' : '' %>">
-                            <i class="fas fa-robot"></i> Manage Bots
-                        </a>
-                        <a href="/admin/users" class="nav-link <%= title === 'Manage Users' ? 'active' : '' %>">
-                            <i class="fas fa-users"></i> Manage Users
-                        </a>
-                    <% } else {
-                        const baseUrl = user.level === 'premium' ? '/premium'
-                                      : user.level === 'langganan' ? '/langganan'
-                                      : '/member';
-                    %>
-                        <a href="<%= baseUrl %>/dashboard" class="nav-link <%= title === 'Dashboard' ? 'active' : '' %>">
-                            <i class="fas fa-chart-line"></i> Dashboard
-                        </a>
-                        <a href="<%= baseUrl %>/bots" class="nav-link <%= title === 'Bots Saya' ? 'active' : '' %>">
-                            <i class="fas fa-robot"></i> Bots Saya
-                        </a>
-                        <a href="/user/profile" class="nav-link <%= title === 'Profile' ? 'active' : '' %>">
-                            <i class="fas fa-user"></i> Profile
-                        </a>
-                    <% } %>
+                    <a href="/admin/dashboard" class="nav-link <%= title === 'Dashboard' ? 'active' : '' %>">
+                        <i class="fas fa-chart-line"></i> Dashboard
+                    </a>
+                    <a href="/admin/bots" class="nav-link <%= title === 'Manage Bots' ? 'active' : '' %>">
+                        <i class="fas fa-robot"></i> Bots
+                    </a>
+                    <a href="/admin/help" class="nav-link <%= title === 'Panduan Fitur' ? 'active' : '' %>">
+                        <i class="fas fa-book"></i> Panduan Fitur
+                    </a>
+                    <a href="/admin/settings" class="nav-link <%= title === 'Settings' ? 'active' : '' %>">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
                     <hr class="nav-divider">
                     <button onclick="logout()" class="nav-link danger">
                         <i class="fas fa-sign-out-alt"></i> Logout
@@ -494,9 +481,7 @@
                             <i class="fas fa-user"></i>
                             <span><%= user.username %></span>
                         </span>
-                        <span class="badge <%= user.level === 'admin' ? 'badge-red' : user.level === 'premium' ? 'badge-purple' : user.level === 'langganan' ? 'badge-blue' : 'badge-green' %>">
-                            <%= user.level.toUpperCase() %>
-                        </span>
+                        <span class="badge badge-red">ADMIN</span>
                     </div>
                 </header>
                 <main class="content">

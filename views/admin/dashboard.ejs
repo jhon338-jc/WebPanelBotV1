@@ -24,10 +24,20 @@
         </div>
         <div class="card-brutal stat-card flex-bt">
             <div>
-                <p class="stat-label">Total Users</p>
-                <p class="stat-value" style="color:#ef8354">${stats.totalUsers}</p>
+                <p class="stat-label">Bot Connected</p>
+                <p class="stat-value" style="color:#06a77d">${stats.activeBots}</p>
             </div>
-            <div class="stat-icon" style="background:#ffb703"><i class="fas fa-users"></i></div>
+            <div class="stat-icon" style="background:#7bf1a8"><i class="fas fa-wifi"></i></div>
+        </div>
+    </div>
+
+    <div class="card-brutal">
+        <div class="flex-bt mb-16">
+            <h3 class="card-title" style="margin-bottom:0"><i class="fas fa-bolt"></i> Quick Actions</h3>
+            <div class="row">
+                <button class="btn-brutal btn-brutal-sm btn-green" onclick="quickAction('/api/admin/bots/start-all?redirect=/admin/dashboard')"><i class="fas fa-play"></i> Start Semua</button>
+                <button class="btn-brutal btn-brutal-sm btn-red" onclick="quickAction('/api/admin/bots/stop-all?redirect=/admin/dashboard')"><i class="fas fa-stop"></i> Stop Semua</button>
+            </div>
         </div>
     </div>
 
@@ -69,7 +79,6 @@
                     <div class="bot-mini">
                         <p class="bot-name">${bot.folder}</p>
                         <span class="badge ${statusColor}" style="margin-top:8px">${statusText}</span>
-                        ${bot.assigned_username ? '<p class="muted mt-8">' + bot.assigned_username + '</p>' : ''}
                     </div>
                 `
             }).join('')}
@@ -78,8 +87,11 @@
 </div>
 ` %>
 
-<%- include('../layouts/main', { title: 'Admin Dashboard', content: content }) %>
+<%- include('../layouts/main', { title: 'Dashboard', content: content }) %>
 
 <script>
+    function quickAction(url) {
+        window.location.href = url
+    }
     setInterval(() => { window.location.reload() }, 15000)
 </script>

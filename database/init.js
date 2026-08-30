@@ -8,14 +8,10 @@ const DB_PATH = path.join(__dirname, 'panel.json')
 
 // Default database structure
 const defaultDB = {
-    users: [],
     bots: [],
-    sessions: [],
     logs: [],
     counters: {
-        users: 0,
         bots: 0,
-        sessions: 0,
         logs: 0
     }
 }
@@ -41,10 +37,8 @@ export function writeDB(data) {
 }
 
 export function syncCounters(db) {
-    if (!db.counters) db.counters = { users: 0, bots: 0, sessions: 0, logs: 0 }
-    db.counters.users = Array.isArray(db.users) ? db.users.length : 0
+    if (!db.counters) db.counters = { bots: 0, logs: 0 }
     db.counters.bots = Array.isArray(db.bots) ? db.bots.length : 0
-    db.counters.sessions = Array.isArray(db.sessions) ? db.sessions.length : 0
     db.counters.logs = Array.isArray(db.logs) ? db.logs.length : 0
 }
 

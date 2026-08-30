@@ -14,7 +14,7 @@ import { initDatabase } from './database/init.js'
 import { getBotManager } from './managers/BotManager.js'
 import { logger } from './utils/logger.js'
 import { verifyToken } from './utils/helpers.js'
-import { User } from './models/User.js'
+import { readSettings } from './utils/settings.js'
 import routes from './routes/index.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -38,7 +38,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 app.use(cookieParser())
 
 // Disable cache untuk SEMUA halaman/API agar browser tidak menyajikan halaman lama
-// (browser yang menyimpan cache bisa menampilkan dashboard member dari user lain).
 app.use((req, res, next) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
     res.setHeader('Pragma', 'no-cache')
@@ -70,9 +69,9 @@ app.use((err, req, res, next) => {
 io.use((socket, next) => {
     const token = socket.handshake.auth?.token
     const decoded = token ? verifyToken(token) : null
-    if (!decoded) return next(new Error('Auth required'))
-    const user = User.findById(decoded.id)
-    if (!user || user.status !== 'active' || (decoded.tv || 0) !== (user.token_version || 0)) {
+    if (!decoded || !decoded.isAdmin) return next(new Error('Auth required'))
+    const settings = readSettings()
+    if ((decoded.tv || 0) !== (settings.token_version || 0)) {
         return next(new Error('Auth required'))
     }
     socket.user = decoded
@@ -80,17 +79,13 @@ io.use((socket, next) => {
 })
 
 io.on('connection', (socket) => {
-    if (socket.user.level === 'admin') socket.join('admin')
-    socket.join(`user:${socket.user.id}`)
+    socket.join('admin')
 
     socket.on('subscribe-bot', (folder) => socket.join(`bot:${folder}`))
     socket.on('unsubscribe-bot', (folder) => socket.leave(`bot:${folder}`))
 
     socket.on('bot-action', async (data) => {
         try {
-            if (socket.user.level !== 'admin') {
-                return socket.emit('error', { message: 'Unauthorized' })
-            }
             const { action, folder } = data
             if (action === 'start') await botManager.startBot(folder)
             else if (action === 'stop') await botManager.stopBot(folder)

@@ -1,0 +1,86 @@
+<%
+const sections = [
+  {
+    icon: 'users', title: 'GROUP COMMANDS',
+    commands: [
+      ['.sg', 'Pilih grup yang dipantau'],
+      ['.grouplist', 'Lihat semua grup'],
+      ['.kick @user', 'Kick member'],
+      ['.add 628xx', 'Tambah member'],
+      ['.addadmin @user', 'Jadikan admin'],
+      ['.deladmin @user', 'Hapus admin'],
+      ['.setname Nama', 'Ganti nama grup'],
+      ['.setdesc Teks', 'Ganti deskripsi grup'],
+      ['.totag', 'Tag semua member'],
+      ['.hidetag', 'Tag semua member (sembunyi)']
+    ]
+  },
+  {
+    icon: 'crown', title: 'OWNER COMMANDS',
+    commands: [
+      ['.addowner 628xx', 'Tambah owner'],
+      ['.delowner 628xx', 'Hapus owner'],
+      ['.public', 'Mode public'],
+      ['.self', 'Mode self'],
+      ['.setbio Teks', 'Ganti bio bot'],
+      ['.setnamebot Nama', 'Ganti nama bot'],
+      ['.setpp', 'Ganti foto profil bot'],
+      ['.leave', 'Keluar grup']
+    ]
+  },
+  {
+    icon: 'wrench', title: 'TOOLS COMMANDS',
+    commands: [
+      ['.menu', 'Tampilkan menu'],
+      ['.ping', 'Cek kecepatan bot'],
+      ['.info', 'Info bot'],
+      ['.stiker Teks', 'Buat stiker teks'],
+      ['.simg', 'Stiker dari gambar'],
+      ['.toimg', 'Stiker ke gambar'],
+      ['.tt URL', 'Download TikTok'],
+      ['.ig URL', 'Download Instagram'],
+      ['.fb URL', 'Download Facebook'],
+      ['.mp3 URL', 'Download YouTube audio'],
+      ['.lirik Judul', 'Cari lirik lagu'],
+      ['.iqc', 'Cek IQ'],
+      ['.fakedana Jumlah', 'Fake dana'],
+      ['.fakeff Nama', 'Fake FF'],
+      ['.detik', 'Berita detik'],
+      ['.rvo', 'Read view once']
+    ]
+  }
+]
+
+content = `
+<div class="space-y">
+    <div class="flex-bt">
+        <h2 class="title-stroke" style="font-size:26px"><i class="fas fa-book open"></i> Panduan Fitur Bot</h2>
+        <a href="/admin/bots" class="btn-brutal btn-brutal-sm btn-blue"><i class="fas fa-robot"></i> Manage Bots</a>
+    </div>
+    <div class="card-brutal">
+        <h3 class="card-title"><i class="fas fa-info-circle"></i> Cara Pakai Bot</h3>
+        <ol style="line-height:2;padding-left:20px" class="muted" style="font-size:14px">
+            <li>Start bot dari halaman <b>Bots</b>.</li>
+            <li>Bot minta nomor → input nomor HP di web (tanpa +, contoh <b>628xxx</b>).</li>
+            <li>Pairing code muncul → buka WhatsApp &rarr; <b>Perangkat Tertaut &rarr; Tautkan</b> &rarr; masukin kode.</li>
+            <li>Status jadi <b>Connected</b> &rarr; bot siap dipakai.</li>
+            <li>Kirim perintah di DM/grup, contoh <b>.ping</b> atau <b>.menu</b>.</li>
+        </ol>
+        <p class="muted mt-16">Semua bot sudah punya plugin <b>jimp</b> (stiker/gambar) dan database lengkap &mdash; tanpa error.</p>
+    </div>
+    ${sections.map(s => `
+    <div class="card-brutal">
+        <h3 class="card-title"><i class="fas fa-${s.icon}"></i> ${s.title}</h3>
+        <div class="table-wrap">
+            <table class="b-brutal">
+                <thead><tr><th style="width:220px">Perintah</th><th>Fungsi</th></tr></thead>
+                <tbody>
+                ${s.commands.map(c => `<tr><td><code style="background:#eceade;padding:2px 8px;font-weight:700">${c[0]}</code></td><td>${c[1]}</td></tr>`).join('')}
+                </tbody>
+            </table>
+        </div>
+    </div>`).join('')}
+</div>
+`
+%>
+<%- include('../layouts/main', { title: 'Panduan Fitur', content: content }) %>

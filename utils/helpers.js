@@ -1,9 +1,9 @@
 import jwt from 'jsonwebtoken'
 import { config } from '../config/config.js'
 
-export function generateToken(user) {
+export function generateAdminToken(settings) {
     return jwt.sign(
-        { id: user.id, username: user.username, level: user.level, tv: user.token_version || 0 },
+        { username: settings.username, isAdmin: true, tv: settings.token_version || 0 },
         config.jwtSecret,
         { expiresIn: '7d' }
     )
@@ -24,18 +24,4 @@ export function formatDateTime(dateString) {
 export function sanitizeInput(input) {
     if (typeof input !== 'string') return input
     return input.replace(/[<>]/g, '').trim()
-}
-
-export function userBasePath(level) {
-    const map = {
-        admin: '/admin',
-        premium: '/premium',
-        langganan: '/langganan',
-        member: '/member'
-    }
-    return map[level] || '/member'
-}
-
-export function userDashboardPath(level) {
-    return userBasePath(level) + '/dashboard'
 }

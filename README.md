@@ -1,15 +1,17 @@
 # Jhon338 Bot Panel
 
-Panel + 10 bot WhatsApp. Menjalankan bot, mengelola pengguna, dan membagikan akses panel
-ke orang lain via link publik (Cloudflare Tunnel).
+Panel admin tunggal + 10 bot WhatsApp. Panel privat untuk pemilik, mengelola bot
+start/stop/pairing/log, lengkap dengan statistik sistem.
 
 ## Fitur
-- Kelola 10 bot WhatsApp (start, stop, restart)
+- Login admin tunggal (username + PIN)
+- Dashboard statistik bot & info sistem
+- Kelola 10 bot WhatsApp (start, stop, restart, logout)
 - Pairing / kode pairing otomatis
-- Log real-time per bot
-- Logout bot (hapus auth → wajib pairing ulang)
-- Multi-user: admin, premium, langganan, member + quota bot
-- Akses publik via link Cloudflare Tunnel
+- Log real-time per bot (auto-refresh via Socket.IO)
+- Panduan fitur bot (daftar perintah)
+- Settings: ganti username & PIN
+- Akses via link Cloudflare Tunnel
 
 ## Cara Pakai di Termux
 
@@ -49,15 +51,13 @@ Skrip menampilkan pilihan tunnel:
 > ⚠️ LocalTunnel error `Unsupported platform: android` di Termux. Pakai opsi **1 (Cloudflare)**.
 > Opsi 2 hanya jalan di Linux/VPS (set `ALLOW_LT=1` bila perlu).
 
-**Bagikan link itu ke orang lain** — mereka bisa login, assign bot, connect, lihat log.
+**Bagikan link itu jika ingin mengakses dari HP / perangkat lain** — lalu login dengan
+username `JHON338` dan PIN yang sudah diset.
 Tekan `Ctrl+C` untuk menghentikan panel & tunnel.
 
 ## Login Admin
-- Saat deploy/clone pertama, database panel kosong (tidak ada user).
-- **Buat admin pertama** dengan edit database `database/panel.json` atau jalankan sekali
-  lewat panel register. Cek `README` setup di bawah.
-
-> Untuk keamanan, ganti password admin default setelah login.
+- Login tunggal: **Username:** `JHON338` · **PIN:** `030308`
+- Setelah login, ganti username/PIN lewat menu **Settings** (bilamana perlu).
 
 ## Struktur
 ```
@@ -71,12 +71,7 @@ landing-page/        # halaman statis untuk Vercel (repo terpisah: Panel-Web-Bot
 ## Catatan
 - `node_modules`, folder `auth` bot, dan `.env` TIDAK di-commit (lihat `.gitignore`).
   Setelah clone, `setup.sh` menyiapkannya.
-- `database/panel.json` **di-commit** (berisi data user & status bot). Setelah `git pull`
-  di HP, versi yang di-pull menimpa file lokal. Bot yang pernah dipakai user lama di-reset
-  ke `status: stopped`, `assigned_to: null` supaya user baru melihat 10 bot kosong.
-- **Reset bot assignment di HP** (bila masih ada bot "konek" ke user lama, mis. Bot3):
-  ```bash
-  cd ~/WebPanelBotV1 && bash termux/reset-bots.sh
-  ```
-  lalu `bash termux/start-panel.sh`.
+- `database/panel.json` **di-commit** (berisi status bot). Setelah `git pull` di HP,
+  bot yang pernah dipakai user lama di-reset ke `status: stopped` supaya tampil 10 bot kosong.
+- Kredensial login disimpan di `database/settings.json` (default: `JHON338` / `030308`).
 - Folder `auth` bot dikosongkan → setiap bot harus pairing ulang setelah setup.

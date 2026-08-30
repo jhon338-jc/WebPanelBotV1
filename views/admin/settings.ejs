@@ -1,0 +1,70 @@
+<% content = `
+<div class="space-y">
+    <div class="flex-bt">
+        <h2 class="title-stroke" style="font-size:26px"><i class="fas fa-cog"></i> Settings</h2>
+    </div>
+
+    <div class="card-brutal" style="max-width:480px">
+        <h3 class="card-title"><i class="fas fa-user-cog"></i> Kredensial Login</h3>
+        <p class="muted mb-16">Ubah username & PIN untuk masuk ke panel.</p>
+
+        <form id="settings-form" class="space-y" style="gap:14px">
+            <div class="field">
+                <label for="s-username">Username</label>
+                <div class="input-wrap">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="s-username" class="input-brutal" value="${settings.username}" placeholder="Username">
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="s-pin">PIN Baru</label>
+                <div class="input-wrap has-toggle">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="s-pin" class="input-brutal" placeholder="PIN baru (min 4 digit)" autocomplete="off">
+                    <button type="button" class="toggle-pass" onclick="togglePassword('s-pin', this)">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-brutal btn-yellow btn-brutal-block">
+                <i class="fas fa-save"></i> Simpan Perubahan
+            </button>
+        </form>
+    </div>
+</div>
+` %>
+
+<%- include('../layouts/main', { title: 'Settings', content: content }) %>
+
+<script>
+    document.getElementById('settings-form').addEventListener('submit', async (e) => {
+        e.preventDefault()
+        const body = {
+            username: document.getElementById('s-username').value.trim(),
+            pin: document.getElementById('s-pin').value
+        }
+        try {
+            const res = await fetch('/api/admin/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            })
+            const data = await res.json()
+            if (data.success) {
+                showToast(data.message, 'success')
+                document.getElementById('s-pin').value = ''
+                if (data.requiresRelogin) {
+                    setTimeout(() => { window.location.href = '/login' }, 1000)
+                } else {
+                    setTimeout(() => { window.location.reload() }, 800)
+                }
+            } else {
+                showToast(data.message || 'Gagal menyimpan', 'error')
+            }
+        } catch (err) {
+            showToast('Gagal terhubung ke server', 'error')
+        }
+    })
+</script>

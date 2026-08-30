@@ -1,7 +1,7 @@
-import { User } from '../models/User.js'
 import { Bot } from '../models/Bot.js'
 import { getBotManager } from '../managers/BotManager.js'
 import { formatDateTime, sanitizeInput } from '../utils/helpers.js'
+import { readSettings, writeSettings } from '../utils/settings.js'
 import { logger } from '../utils/logger.js'
 
 function redirectBack(req, res, message) {
@@ -30,9 +30,7 @@ export class AdminController {
             const stats = {
                 totalBots: Bot.getTotalBots(),
                 activeBots: Bot.getActiveBots(),
-                runningBots: Bot.getRunningBots(),
-                totalUsers: User.countActive(),
-                availableBots: Bot.getAvailableBots().length
+                runningBots: Bot.getRunningBots()
             }
             const os = await import('os')
             const systemInfo = {
@@ -49,7 +47,7 @@ export class AdminController {
             if (req.baseUrl.startsWith('/api')) {
                 return res.json({ success: true, stats, bots, systemInfo })
             }
-            res.render('admin/dashboard', { title: 'Admin Dashboard', stats, bots, systemInfo })
+            res.render('admin/dashboard', { title: 'Dashboard', stats, bots, systemInfo })
         } catch (e) {
             logger.error('Dashboard error:', e)
             res.status(500).render('error', { message: 'Server error', code: 500 })
@@ -73,7 +71,6 @@ export class AdminController {
             if (req.baseUrl.startsWith('/api')) {
                 return res.json({ success: true, bots })
             }
-            // Ambil log untuk semua bot, render langsung di server
             const initialLogs = {}
             for (const bot of bots) {
                 initialLogs[bot.folder] = botManager.getBotLogs(bot.folder, 30)
@@ -89,132 +86,59 @@ export class AdminController {
         }
     }
 
-    static async listUsers(req, res) {
+    static async settings(req, res) {
         try {
-            const users = User.findAll()
+            const settings = readSettings()
             if (req.baseUrl.startsWith('/api')) {
-                return res.json({ success: true, users })
+                return res.json({ success: true, settings: { username: settings.username } })
             }
-            res.render('admin/users', { title: 'Manage Users', users, formatDateTime })
+            res.render('admin/settings', { title: 'Settings', settings })
         } catch (e) {
-            logger.error('List users error:', e)
+            logger.error('Settings error:', e)
             res.status(500).render('error', { message: 'Server error', code: 500 })
         }
     }
 
-    static async addUser(req, res) {
+    static async updateSettings(req, res) {
         try {
-            const { username, password, email, level, bot_quota } = req.body
-            if (!username || !password) {
-                return res.status(400).json({ success: false, message: 'Username dan password wajib!' })
-            }
-            if (User.findByUsername(username)) {
-                return res.status(400).json({ success: false, message: 'Username sudah ada!' })
-            }
-            if (email && User.findByEmail(email)) {
-                return res.status(400).json({ success: false, message: 'Email sudah terdaftar!' })
-            }
-            const userId = User.create(username, password, email)
-            if (level && ['admin', 'premium', 'langganan', 'member'].includes(level)) {
-                User.update(userId, { level })
-            }
-            const quota = parseInt(bot_quota)
-            if (!isNaN(quota) && quota >= 0) {
-                User.update(userId, { bot_quota: quota })
-            }
-            return res.json({ success: true, message: 'User berhasil ditambah!' })
-        } catch (e) {
-            logger.error('Add user error:', e)
-            return res.status(500).json({ success: false, message: e.message || 'Server error' })
-        }
-    }
+            const username = sanitizeInput(req.body.username)
+            let { pin } = req.body
+            pin = pin === undefined || pin === '' ? undefined : String(pin)
 
-    static async updateUser(req, res) {
-        try {
-            const userId = parseInt(req.params.id)
-            const { username, password, level, status, bot_quota } = req.body
-            const data = {}
-            if (username && typeof username === 'string') {
-                const clean = sanitizeInput(username)
-                const existing = User.findByUsername(clean)
-                if (existing && existing.id !== userId) {
-                    return res.status(400).json({ success: false, message: 'Username sudah dipakai!' })
+            if (!username) {
+                return res.status(400).json({ success: false, message: 'Username wajib diisi!' })
+            }
+            if (pin !== undefined && pin.length < 4) {
+                return res.status(400).json({ success: false, message: 'PIN minimal 4 digit!' })
+            }
+            const current = readSettings()
+            const changes = { username }
+            let pinChanged = false
+            if (pin !== undefined) {
+                changes.pin = pin
+                if (pin !== current.pin) {
+                    changes.token_version = (current.token_version || 0) + 1
+                    pinChanged = true
                 }
-                data.username = clean
             }
-            if (password !== undefined && password !== '') {
-                if (password.length < 6) {
-                    return res.status(400).json({ success: false, message: 'Password minimal 6 karakter!' })
-                }
-                data.password = password
-            }
-            if (level && ['admin', 'premium', 'langganan', 'member'].includes(level)) {
-                data.level = level
-            }
-            if (status && ['active', 'banned'].includes(status)) {
-                data.status = status
-            }
-            if (bot_quota !== undefined) {
-                const q = parseInt(bot_quota)
-                if (!isNaN(q) && q >= 0) data.bot_quota = q
-            }
-            User.update(userId, data)
-            return res.json({ success: true, message: 'User diupdate!' })
+            writeSettings(changes)
+            logger.info(`Settings diupdate oleh admin`)
+            return res.json({ success: true, message: 'Settings berhasil diupdate!', requiresRelogin: pinChanged })
         } catch (e) {
+            logger.error('Update settings error:', e)
             return res.status(500).json({ success: false, message: 'Server error' })
         }
     }
 
-    static async addQuota(req, res) {
+    static async help(req, res) {
         try {
-            const userId = parseInt(req.params.id)
-            const add = parseInt(req.body.add)
-            if (isNaN(add) || add <= 0) {
-                return res.status(400).json({ success: false, message: 'Jumlah quota tidak valid!' })
+            if (req.baseUrl.startsWith('/api')) {
+                return res.json({ success: true })
             }
-            User.adjustQuota(userId, add)
-            return res.json({ success: true, message: `Quota +${add}` })
+            res.render('admin/help', { title: 'Panduan Fitur' })
         } catch (e) {
-            return res.status(500).json({ success: false, message: 'Server error' })
-        }
-    }
-
-    static async approvePassword(req, res) {
-        try {
-            const userId = parseInt(req.params.id)
-            const user = User.findById(userId)
-            if (!user) return res.status(404).json({ success: false, message: 'User tidak ditemukan' })
-            if (!user.pending_password) {
-                return res.status(400).json({ success: false, message: 'Tidak ada permintaan ganti password' })
-            }
-            User.approvePasswordChange(userId)
-            return res.json({ success: true, message: `Password ${user.username} berhasil diganti!` })
-        } catch (e) {
-            return res.status(500).json({ success: false, message: 'Server error' })
-        }
-    }
-
-    static async rejectPassword(req, res) {
-        try {
-            const userId = parseInt(req.params.id)
-            User.rejectPasswordChange(userId)
-            return res.json({ success: true, message: 'Permintaan ganti password ditolak' })
-        } catch (e) {
-            return res.status(500).json({ success: false, message: 'Server error' })
-        }
-    }
-
-    static async deleteUser(req, res) {
-        try {
-            const userId = parseInt(req.params.id)
-            const userBots = Bot.getBotByUser(userId)
-            for (const bot of userBots) {
-                Bot.releaseBot(bot.id)
-            }
-            User.delete(userId)
-            return res.json({ success: true, message: 'User dihapus!' })
-        } catch (e) {
-            return res.status(500).json({ success: false, message: 'Server error' })
+            logger.error('Help error:', e)
+            res.status(500).render('error', { message: 'Server error', code: 500 })
         }
     }
 
@@ -226,6 +150,30 @@ export class AdminController {
         } catch (e) {
             if (!req.query.redirect) return res.status(400).json({ success: false, message: e.message })
             return redirectBack(req, res, e.message)
+        }
+    }
+
+    static async startAllBots(req, res) {
+        try {
+            const bots = Bot.findAll()
+            for (const bot of bots) {
+                try { await getBotManager().startBot(bot.folder) } catch (e) {}
+            }
+            return redirectBack(req, res, `Semua bot di-start (${bots.length})`)
+        } catch (e) {
+            return res.status(500).json({ success: false, message: e.message || 'Server error' })
+        }
+    }
+
+    static async stopAllBots(req, res) {
+        try {
+            const bots = Bot.findAll()
+            for (const bot of bots) {
+                try { await getBotManager().stopBot(bot.folder) } catch (e) {}
+            }
+            return redirectBack(req, res, `Semua bot di-stop (${bots.length})`)
+        } catch (e) {
+            return res.status(500).json({ success: false, message: e.message || 'Server error' })
         }
     }
 
@@ -259,8 +207,6 @@ export class AdminController {
                 return res.status(404).json({ success: false, message: 'Bot tidak ditemukan' })
             }
             await getBotManager().logoutBot(folder)
-            // Lepas kepemilikan bot dari user agar bisa di-assign ulang
-            Bot.releaseBot(bot.id)
             if (req.query.redirect) {
                 return res.redirect(req.query.redirect)
             }

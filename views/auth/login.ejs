@@ -111,11 +111,11 @@
                 </div>
             </div>
             <div class="field">
-                <label>Password</label>
+                <label>PIN</label>
                 <div class="input-wrap has-toggle">
                     <i class="fas fa-lock input-icon"></i>
-                    <input type="password" name="password" required class="input-brutal" placeholder="Masukkan password" id="login-password">
-                    <button type="button" class="toggle-pass" onclick="togglePassword('login-password', this)">
+                    <input type="password" name="pin" required class="input-brutal" placeholder="Masukkan PIN" id="login-pin">
+                    <button type="button" class="toggle-pass" onclick="togglePassword('login-pin', this)">
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
@@ -124,11 +124,6 @@
                 <i class="fas fa-sign-in-alt mr-2"></i> Login
             </button>
         </form>
-
-        <p class="auth-footer">
-            Belum punya akun?
-            <a href="/register">Daftar disini</a>
-        </p>
     </div>
 
     <script>
@@ -151,7 +146,7 @@
             const formData = new FormData(e.target)
             const data = {
                 username: formData.get('username'),
-                password: formData.get('password')
+                pin: formData.get('pin')
             }
             const errorAlert = document.getElementById('error-alert')
             errorAlert.classList.remove('show')

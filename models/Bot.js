@@ -9,7 +9,6 @@ export class Bot {
             folder,
             name,
             status: 'stopped',
-            assigned_to: null,
             connected: false,
             last_active: null,
             created_at: new Date().toISOString()
@@ -22,13 +21,7 @@ export class Bot {
 
     static findAll() {
         const db = readDB()
-        return db.bots.map(bot => {
-            const assignedUser = db.users.find(u => u.id === bot.assigned_to)
-            return {
-                ...bot,
-                assigned_username: assignedUser ? assignedUser.username : null
-            }
-        })
+        return db.bots.map(bot => ({ ...bot }))
     }
 
     static findByFolder(folder) {
@@ -39,39 +32,6 @@ export class Bot {
     static findById(id) {
         const db = readDB()
         return db.bots.find(b => b.id === id)
-    }
-
-    static getAvailableBots() {
-        const db = readDB()
-        return db.bots.filter(b => b.assigned_to === null)
-    }
-
-    static getBotByUser(userId) {
-        const db = readDB()
-        return db.bots.filter(b => b.assigned_to === userId)
-    }
-
-    static assignBot(botId, userId) {
-        const db = readDB()
-        const index = db.bots.findIndex(b => b.id === botId)
-        if (index !== -1 && db.bots[index].assigned_to === null) {
-            db.bots[index].assigned_to = userId
-            db.bots[index].status = 'ready'
-            writeDB(db)
-            return true
-        }
-        return false
-    }
-
-    static releaseBot(botId) {
-        const db = readDB()
-        const index = db.bots.findIndex(b => b.id === botId)
-        if (index !== -1) {
-            db.bots[index].assigned_to = null
-            db.bots[index].status = 'stopped'
-            db.bots[index].connected = false
-            writeDB(db)
-        }
     }
 
     static updateStatus(botId, status, connected = false) {
