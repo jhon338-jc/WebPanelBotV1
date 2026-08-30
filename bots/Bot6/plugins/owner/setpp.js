@@ -25,7 +25,12 @@ if (!m.isGroup) return conn.sendMessage(m.chat, { text: '❌ Fitur ini khusus gr
         
     } catch (e) {
         console.error(e)
-        conn.sendMessage(m.chat, { text: '❌ Gagal ganti foto profil! Pastikan bot admin.' })
+        const msg = String(e?.message || e)
+        if (msg.includes('image processing library')) {
+            conn.sendMessage(m.chat, { text: '❌ Gagal ganti foto profil! Library gambar (sharp/jimp) tidak tersedia. Jalankan setup bot ulang.' })
+        } else {
+            conn.sendMessage(m.chat, { text: '❌ Gagal ganti foto profil! Pastikan bot admin.' })
+        }
         await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } })
     }
 }

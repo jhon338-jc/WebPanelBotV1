@@ -22,7 +22,7 @@ let handler = async (m, { conn, text }) => {
         let webpPath = `${os.tmpdir()}/tmp_s_${Date.now()}.webp`
         
         await image.writeAsync(pngPath)
-        execSync(`magick convert ${pngPath} -define webp:lossless=true ${webpPath}`)
+        execSync(`convert ${pngPath} -define webp:lossless=true ${webpPath}`)
         
         let stickerBuffer = fs.readFileSync(webpPath)
         

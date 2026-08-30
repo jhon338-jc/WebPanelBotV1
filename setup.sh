@@ -72,6 +72,33 @@ for i in $(seq 1 10); do
     fi
 done
 
+# 3b) Pastikan sharp (native image lib untuk Baileys updateProfilePicture) jalan
+#     Sharp butuh binary native sesuai platform. Kalau gagal load, rebuild/install ulang.
+#     Bot pakai shared bots/node_modules, jadi cukup dipastikan di situ.
+echo "[*] Verifikasi library gambar (sharp/jimp) untuk .setpp ..."
+(cd "$ROOT/bots" && node -e "
+try { require('sharp'); process.exit(0); }
+catch { process.exit(1); }
+" )
+if [ $? -eq 0 ]; then
+    echo "    sharp OK, skip."
+else
+    echo "    sharp tidak bisa load. Install ulang binary native sharp ..."
+    ( cd "$ROOT/bots" && npm rebuild sharp --legacy-peer-deps 2>/dev/null || npm install sharp --legacy-peer-deps --no-audit --no-fund )
+    echo "    sharp selesai diinstall/rebuild."
+fi
+
+(cd "$ROOT/bots" && node -e "
+try { require('jimp'); process.exit(0); }
+catch { process.exit(1); }
+" )
+if [ $? -eq 0 ]; then
+    echo "    jimp OK."
+else
+    echo "    [!] jimp tidak tersedia, install ulang ..."
+    ( cd "$ROOT/bots" && npm install jimp --legacy-peer-deps --no-audit --no-fund )
+fi
+
 # 4) Auto-create database files tiap bot (jika belum ada)
 #    Folder bots/*/database di-.gitignore, jadi setelah git pull pasti kosong.
 #    Tanpa file ini bot error ENOENT (monitor.json / role.json).

@@ -30,6 +30,8 @@ let handler = async (m, { conn }) => {
             mime = 'video/mp4'
         }
 
+        if (mime.startsWith('video/')) isVideo = true
+
         if (isVideo) {
             let mp4Path = `${os.tmpdir()}/tmp_v_${Date.now()}.mp4`
             let webpPath = `${os.tmpdir()}/tmp_v_${Date.now()}.webp`
@@ -52,7 +54,7 @@ let handler = async (m, { conn }) => {
             let webpPath = `${os.tmpdir()}/tmp_i_${Date.now()}.webp`
             
             await image.writeAsync(pngPath)
-            execSync(`magick convert ${pngPath} -define webp:lossless=true ${webpPath}`)
+            execSync(`convert ${pngPath} -define webp:lossless=true ${webpPath}`)
             
             let stickerBuffer = fs.readFileSync(webpPath)
             await conn.sendMessage(m.chat, { sticker: stickerBuffer }, { quoted: m })
