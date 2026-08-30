@@ -111,6 +111,33 @@ for i in $(seq 1 "$MAX_BOTS"); do
     fi
 done
 
+# 3a) Dependency sistem untuk media bot: ffmpeg + imagemagick (convert).
+#     Dipakai plugin stiker video (.simg/.svideo) dan convert stiker (.toimg).
+#     Di Termux:  pkg install ffmpeg imagemagick libwebp
+#     Di Linux:   sudo apt install ffmpeg imagemagick
+#     Auto-install hanya bila INSTALL_MEDIA=1 (non-fatal, tidak set -e).
+echo "[*] Pastikan ffmpeg & imagemagick (convert) untuk media bot (opsional) ..."
+NEED_FF="0"; NEED_CV="0"
+command -v ffmpeg >/dev/null 2>&1 || NEED_FF="1"
+command -v convert >/dev/null 2>&1 || NEED_CV="1"
+if [ "${INSTALL_MEDIA:-0}" = "1" ] && { [ "$NEED_FF" = "1" ] || [ "$NEED_CV" = "1" ]; }; then
+    if [ -d /data/data/com.termux ]; then
+        echo "    Menginstall ffmpeg & imagemagick (Termux) ..."
+        pkg install -y ffmpeg imagemagick libwebp 2>&1 | tail -1 \
+            || echo "    [!] pkg install gagal. Manual: pkg install ffmpeg imagemagick"
+    else
+        APT_CMD="apt-get"
+        command -v sudo >/dev/null 2>&1 && APT_CMD="sudo apt-get"
+        echo "    Menginstall ffmpeg & imagemagick (Linux) ..."
+        $APT_CMD update -y >/dev/null 2>&1 || true
+        $APT_CMD install -y ffmpeg imagemagick 2>&1 | tail -1 \
+            || echo "    [!] apt install gagal. Manual: sudo apt install ffmpeg imagemagick"
+    fi
+fi
+if command -v ffmpeg >/dev/null 2>&1; then echo "    ffmpeg OK."; else echo "    ffmpeg belum terpasang (opsional utk stiker video)."; fi
+if command -v convert >/dev/null 2>&1; then echo "    convert OK."; else echo "    convert belum terpasang (opsional)."; fi
+echo "    (auto-install: INSTALL_MEDIA=1 bash setup.sh)"
+
 # 3b) Pastikan sharp (native image lib untuk Baileys updateProfilePicture) jalan
 #     Sharp butuh binary native sesuai platform. Kalau gagal load, fallback ke Jimp.
 #     Bot pakai shared bots/node_modules, jadi cukup dipastikan di situ.
