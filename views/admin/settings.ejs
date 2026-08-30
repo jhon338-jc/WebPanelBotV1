@@ -4,9 +4,9 @@
         <h2 class="title-stroke" style="font-size:26px"><i class="fas fa-cog"></i> Settings</h2>
     </div>
 
-    <div class="card-brutal" style="max-width:480px">
-        <h3 class="card-title"><i class="fas fa-user-cog"></i> Kredensial Login</h3>
-        <p class="muted mb-16">Ubah username & PIN untuk masuk ke panel.</p>
+    <div class="card-brutal" style="max-width:520px">
+        <h3 class="card-title"><i class="fas fa-user-cog"></i> Kredensial & Admin</h3>
+        <p class="muted mb-16">Username, PIN, dan nomor WhatsApp admin. Login panel bisa pakai username ATAU nomor admin.</p>
 
         <form id="settings-form" class="space-y" style="gap:14px">
             <div class="field">
@@ -28,10 +28,65 @@
                 </div>
             </div>
 
+            <div class="field">
+                <label for="s-adminNumber">Nomor Admin (WhatsApp)</label>
+                <div class="input-wrap">
+                    <i class="fas fa-phone"></i>
+                    <input type="text" id="s-adminNumber" class="input-brutal" value="${settings.adminNumber || ''}" placeholder="628xxxxxxxxxx">
+                </div>
+                <p class="muted" style="font-size:12px">Bisa dipakai untuk login panel & sebagai kontak pembayaran sewa.</p>
+            </div>
+
+            <div class="field">
+                <label for="s-paymentMethod">Metode Pembayaran (Sewa)</label>
+                <div class="input-wrap">
+                    <i class="fas fa-wallet"></i>
+                    <input type="text" id="s-paymentMethod" class="input-brutal" value="${settings.paymentMethod || 'DANA Bisnis / QRIS'}" placeholder="DANA Bisnis / QRIS">
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="s-paymentAccount">Nomor Akun Pembayaran</label>
+                <div class="input-wrap">
+                    <i class="fas fa-hashtag"></i>
+                    <input type="text" id="s-paymentAccount" class="input-brutal" value="${settings.paymentAccount || ''}" placeholder="085xxxxxxxxx">
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="s-paymentName">Atas Nama</label>
+                <div class="input-wrap">
+                    <i class="fas fa-id-card"></i>
+                    <input type="text" id="s-paymentName" class="input-brutal" value="${settings.paymentName || ''}" placeholder="Nama pemilik akun">
+                </div>
+            </div>
+
             <button type="submit" class="btn-brutal btn-yellow btn-brutal-block">
                 <i class="fas fa-save"></i> Simpan Perubahan
             </button>
         </form>
+    </div>
+
+    <div class="card-brutal" style="max-width:520px">
+        <h3 class="card-title"><i class="fas fa-qrcode"></i> QR Pembayaran DANA Bisnis</h3>
+        <p class="muted mb-16">Upload QR QRIS DANA Bisnis kamu. QR & nominal otomatis dikirim bot saat user order sewa (.sewa paket).</p>
+
+        <div class="space-y" style="gap:14px">
+            <div id="qr-preview" class="flex-center" style="min-height:120px;border:3px dashed var(--color-gray);border-radius:12px;padding:8px">
+                ${hasQr
+                    ? `<img src="/api/admin/payment-qr?t=${Date.now()}" alt="QR Pembayaran" style="max-height:220px;border-radius:8px">`
+                    : `<span class="muted">Belum ada QR. Upload QR DANA Bisnis kamu.</span>`}
+            </div>
+
+            <label class="btn-brutal btn-green btn-brutal-block" style="text-align:center;cursor:pointer">
+                <i class="fas fa-upload"></i> Pilih File QR
+                <input type="file" id="qr-file" accept="image/png,image/jpeg,image/webp" style="display:none">
+            </label>
+
+            <button id="qr-delete" class="btn-brutal btn-red btn-brutal-block" style="${hasQr ? '' : 'display:none'}">
+                <i class="fas fa-trash"></i> Hapus QR
+            </button>
+        </div>
     </div>
 </div>
 ` %>
@@ -39,11 +94,65 @@
 <%- include('../layouts/main', { title: 'Settings', content: content }) %>
 
 <script>
+    const qrFile = document.getElementById('qr-file')
+    const qrDelete = document.getElementById('qr-delete')
+
+    async function uploadQr(file) {
+        if (!file) return
+        const reader = new FileReader()
+        reader.onload = async () => {
+            try {
+                showToast('Mengupload QR...', 'info')
+                const res = await fetch('/api/admin/payment-qr', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: reader.result })
+                })
+                const data = await res.json()
+                if (data.success) {
+                    showToast(data.message, 'success')
+                    setTimeout(() => location.reload(), 800)
+                } else {
+                    showToast(data.message || 'Gagal upload QR', 'error')
+                }
+            } catch (err) {
+                showToast('Gagal terhubung ke server', 'error')
+            }
+        }
+        reader.readAsDataURL(file)
+    }
+
+    qrFile && qrFile.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) uploadQr(e.target.files[0])
+    })
+
+    qrDelete && qrDelete.addEventListener('click', async () => {
+        brutalConfirm({
+            title: 'Hapus QR',
+            message: 'Yakin ingin menghapus QR pembayaran?',
+            confirmText: 'Hapus',
+            onConfirm: async () => {
+                try {
+                    const res = await fetch('/api/admin/payment-qr', { method: 'DELETE' })
+                    const data = await res.json()
+                    showToast(data.message, data.success ? 'success' : 'error')
+                    if (data.success) setTimeout(() => location.reload(), 800)
+                } catch (err) {
+                    showToast('Gagal terhubung ke server', 'error')
+                }
+            }
+        })
+    })
+
     document.getElementById('settings-form').addEventListener('submit', async (e) => {
         e.preventDefault()
         const body = {
             username: document.getElementById('s-username').value.trim(),
-            pin: document.getElementById('s-pin').value
+            pin: document.getElementById('s-pin').value,
+            adminNumber: document.getElementById('s-adminNumber').value.trim(),
+            paymentMethod: document.getElementById('s-paymentMethod').value.trim(),
+            paymentAccount: document.getElementById('s-paymentAccount').value.trim(),
+            paymentName: document.getElementById('s-paymentName').value.trim()
         }
         try {
             const res = await fetch('/api/admin/settings', {

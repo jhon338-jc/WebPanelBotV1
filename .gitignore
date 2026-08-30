@@ -31,6 +31,7 @@ bots/*/tmp/
 # Data runtime panel (buatan server saat jalan) - jangan di-commit
 database/sewa.json
 database/sellers.json
+database/payment-qr.png
 
 # Plugin hasil sync-duplikasi di Bot2..Bot10 (source of truth = Bot1/plugins).
 # File tracked lama tetap ke-track, hanya file duplikat baru yang di-ignore.

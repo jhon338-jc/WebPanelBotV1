@@ -234,6 +234,26 @@ export class BotManager extends EventEmitter {
         return removed
     }
 
+    // Reset TOTAL session: hentikan SEMUA bot + hapus semua folder auth (wajib pairing ulang semua)
+    async clearAllSessions() {
+        const removed = []
+        const folders = Bot.findAll().map(b => b.folder)
+        for (const folder of folders) {
+            try { await this.stopBot(folder) } catch (e) {}
+            const authPath = path.join(config.botDir, folder, 'auth')
+            try {
+                if (fs.existsSync(authPath)) {
+                    fs.rmSync(authPath, { recursive: true, force: true })
+                    removed.push(folder)
+                }
+            } catch (e) {
+                this.addLog(folder, 'error', `Gagal reset session: ${e.message}`)
+            }
+        }
+        this.addLog('Bot1', 'warn', `Reset total: session ${removed.length} bot dihapus, semua wajib pairing ulang`)
+        return removed
+    }
+
     sendInput(folder, input) {
         const botData = this.bots.get(folder)
         if (!botData || !botData.process) {

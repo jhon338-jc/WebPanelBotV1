@@ -20,6 +20,8 @@ import config from '../config.json' with { type: 'json' }
 // ============================================================
 
 const SEWA_FILE = '../../database/sewa.json'
+const SETTINGS_FILE = '../../database/settings.json'
+const QR_FILE = '../../database/payment-qr.png'
 
 // Kalau bukan Bot1, plugin ini inert (tidak daftar command, tidak polling).
 // Folder Bot11..50 ikut menyalin sewa.js; ini mencegah mereka ikut jalan.
@@ -31,15 +33,51 @@ const PAKET = {
     unlimited: { id: 'unlimited', nama: 'Paket Unlimited', durasi: 0, harga: 150000, fitur: '200+ full fitur' }
 }
 
-const PAYMENT_TEXT = [
-    '💳 *Metode Pembayaran:*',
-    '',
-    '• *DANA* : 085134895788 a.n Jhon Chenank',
-    '• *OVO*  : 085134895788 a.n Jhon Chenank',
-    '• *QRIS* : minta QR ke admin',
-    '',
-    'Setelah transfer, kirim *bukti pembayaran* (foto/screenshot) ke bot ini.'
-].join('\n')
+// Baca pengaturan pembayaran dari web panel (Settings admin / DANA Bisnis QRIS).
+// Bot1 dijalankan dengan cwd = folder botnya, jadi ../../database mengarah ke database panel.
+function readPanelSettings() {
+    const fallback = {
+        paymentMethod: 'DANA Bisnis / QRIS',
+        paymentAccount: '085134895788',
+        paymentName: 'Jhon Chenank',
+        adminNumber: '6285134895788'
+    }
+    try {
+        if (fs.existsSync(SETTINGS_FILE)) {
+            return { ...fallback, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8')) }
+        }
+    } catch (e) {}
+    return fallback
+}
+
+function readQrBuffer() {
+    try {
+        if (fs.existsSync(QR_FILE)) return fs.readFileSync(QR_FILE)
+    } catch (e) {}
+    return null
+}
+
+function buildPaymentText(settings, paket, trxId) {
+    const admin = String(settings.adminNumber || '').replace(/\D/g, '')
+    let t = `💳 *PEMBAYARAN ${trxId}*\n\n`
+    t += `▧ Paket : ${paket.nama}\n`
+    t += `▧ Durasi : ${paket.durasi > 0 ? paket.durasi + ' hari' : 'Selamanya ♾'}\n`
+    t += `▧ Total : *${formatRp(paket.harga)}*\n\n`
+    t += `*${settings.paymentMethod || 'DANA Bisnis / QRIS'}*\n`
+    if (settings.paymentAccount) {
+        t += `• Nomor  : ${settings.paymentAccount}\n`
+    }
+    if (settings.paymentName) {
+        t += `• Atas Nama : ${settings.paymentName}\n`
+    }
+    t += `• Nominal : ${formatRp(paket.harga)}\n\n`
+    t += `Scan *QR di atas* lalu isi nominal sesuai total, atau transfer manual ke nomor di atas.\n\n`
+    t += `Setelah bayar balas: *\`.bayar ${trxId}\`* + kirim bukti (foto/screenshot).`
+    if (admin) {
+        t += `\n\n📞 Butuh bantuan? Hubungi admin: ${admin}`
+    }
+    return t
+}
 
 const STATUS = {
     MENUNGGU_PEMBAYARAN: 'menunggu_pembayaran',
@@ -264,8 +302,17 @@ let handler = async (m, { conn, text, args, command }) => {
         t += `▧ User : ${number}\n`
         t += `▧ Paket : ${paket.nama}\n`
         t += `▧ Harga : ${formatRp(paket.harga)}\n\n`
-        t += PAYMENT_TEXT
-        await conn.sendMessage(m.chat, { text: t })
+
+        const settings = readPanelSettings()
+        const qr = readQrBuffer()
+        const payText = buildPaymentText(settings, paket, trxId)
+        if (qr) {
+            // Kirim QR DANA Bisnis + nominal sebagai gambar dengan caption
+            await conn.sendMessage(m.chat, { image: qr, caption: t + payText })
+        } else {
+            t += payText.replace(/Scan \*QR di atas\* lalu isi nominal sesuai total, atau transfer manual ke nomor di atas\.\n\n/, '')
+            await conn.sendMessage(m.chat, { text: t })
+        }
         await notifyAdmins(conn, `📥 *ORDER BARU ${trxId}*\n\nUser: ${number}\nPaket: ${paket.nama}\nHarga: ${formatRp(paket.harga)}\n\nMenunggu pembayaran & verifikasi.`)
         return
     }

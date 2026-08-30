@@ -8,7 +8,11 @@ const SETTINGS_FILE = path.join(__dirname, '..', 'database', 'settings.json')
 const DEFAULTS = {
     username: 'JHON338',
     pin: '030308',
-    token_version: 0
+    token_version: 0,
+    adminNumber: '6285134895788',
+    paymentMethod: 'DANA Bisnis / QRIS',
+    paymentAccount: '085134895788',
+    paymentName: 'Jhon Chenank'
 }
 
 export function readSettings() {

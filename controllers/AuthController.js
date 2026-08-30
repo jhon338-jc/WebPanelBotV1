@@ -36,8 +36,13 @@ export class AuthController {
                 })
             }
 
-            // Login Admin (superuser)
-            if (username !== settings.username || pin !== settings.pin) {
+            // Login Admin (superuser): via username ATAU via nomor WA admin default
+            const numberOnly = username.replace(/\D/g, '')
+            const isAdminLogin =
+                (username === settings.username || (settings.adminNumber && numberOnly === String(settings.adminNumber).replace(/\D/g, '')))
+                && pin === settings.pin
+
+            if (!isAdminLogin) {
                 logger.warn(`Percobaan login gagal: ${username}`)
                 return res.status(401).json({ success: false, message: 'Username atau PIN salah!' })
             }

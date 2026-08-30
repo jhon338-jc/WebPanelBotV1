@@ -4,6 +4,7 @@
         <h3 class="card-title" style="font-size:20px;margin-bottom:0"><i class="fas fa-robot"></i> Manage Bots</h3>
         <div class="row">
             <span class="badge badge-blue"><i class="fas fa-sync"></i> Auto-refresh 15s</span>
+            <button onclick="confirmResetAll()" class="btn-brutal btn-brutal-sm btn-dark"><i class="fas fa-sign-out-alt"></i> Reset Sesion Semua</button>
             <a href="/admin/bots" class="btn-brutal btn-brutal-sm btn-blue"><i class="fas fa-sync"></i> Refresh</a>
         </div>
     </div>
@@ -158,6 +159,25 @@
             message: `Yakin ingin LOGOUT ${folder}? Bot akan dikeluarkan dari WhatsApp dan harus pairing ulang dari awal.`,
             confirmText: 'Logout',
             onConfirm: () => { window.location.href = `/api/admin/bots/${folder}/logout?redirect=/admin/bots` }
+        })
+    }
+
+    async function confirmResetAll() {
+        brutalConfirm({
+            title: 'Reset Semua Session',
+            message: 'RESET TOTAL semua session bot? SEMUA bot akan logged-out dari WhatsApp & wajib pairing ulang satu-satu. Yakin?',
+            confirmText: 'Reset Semua',
+            onConfirm: async () => {
+                try {
+                    showToast('Mereset semua session...', 'info')
+                    const res = await fetch('/api/admin/bots/reset-sessions', { method: 'POST' })
+                    const data = await res.json()
+                    showToast(data.message, data.success ? 'success' : 'error')
+                    setTimeout(() => location.reload(), 1200)
+                } catch (err) {
+                    showToast('Gagal terhubung ke server', 'error')
+                }
+            }
         })
     }
 

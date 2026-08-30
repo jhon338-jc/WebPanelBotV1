@@ -3,6 +3,12 @@ import { getBotManager } from '../managers/BotManager.js'
 import { formatDateTime, sanitizeInput } from '../utils/helpers.js'
 import { readSettings, writeSettings } from '../utils/settings.js'
 import { logger } from '../utils/logger.js'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const PAYMENT_QR_FILE = path.join(__dirname, '..', 'database', 'payment-qr.png')
 
 function redirectBack(req, res, message) {
     const redirect = typeof req.query.redirect === 'string' && req.query.redirect.startsWith('/')
@@ -96,9 +102,23 @@ export class AdminController {
         try {
             const settings = readSettings()
             if (req.baseUrl.startsWith('/api')) {
-                return res.json({ success: true, settings: { username: settings.username } })
+                return res.json({
+                    success: true,
+                    settings: {
+                        username: settings.username,
+                        adminNumber: settings.adminNumber,
+                        paymentMethod: settings.paymentMethod,
+                        paymentAccount: settings.paymentAccount,
+                        paymentName: settings.paymentName,
+                        hasQr: fs.existsSync(PAYMENT_QR_FILE)
+                    }
+                })
             }
-            res.render('admin/settings', { title: 'Settings', settings })
+            res.render('admin/settings', {
+                title: 'Settings',
+                settings,
+                hasQr: fs.existsSync(PAYMENT_QR_FILE)
+            })
         } catch (e) {
             logger.error('Settings error:', e)
             res.status(500).render('error', { message: 'Server error', code: 500 })
@@ -119,6 +139,21 @@ export class AdminController {
             }
             const current = readSettings()
             const changes = { username }
+
+            // Nomor admin WhatsApp (untuk akses login panel & kontak pembayaran sewa)
+            if (req.body.adminNumber !== undefined) {
+                const digits = String(req.body.adminNumber).replace(/\D/g, '')
+                if (digits && !/^62\d{8,13}$/.test(digits)) {
+                    return res.status(400).json({ success: false, message: 'Nomor admin harus format 62xxxxxxxxxx (8-15 digit)' })
+                }
+                changes.adminNumber = digits || current.adminNumber
+            }
+
+            // Pembayaran sewa (DANA Bisnis / QRIS)
+            if (req.body.paymentMethod !== undefined) changes.paymentMethod = sanitizeInput(req.body.paymentMethod) || 'DANA Bisnis / QRIS'
+            if (req.body.paymentAccount !== undefined) changes.paymentAccount = sanitizeInput(req.body.paymentAccount)
+            if (req.body.paymentName !== undefined) changes.paymentName = sanitizeInput(req.body.paymentName)
+
             let pinChanged = false
             if (pin !== undefined) {
                 changes.pin = pin
@@ -133,6 +168,58 @@ export class AdminController {
         } catch (e) {
             logger.error('Update settings error:', e)
             return res.status(500).json({ success: false, message: 'Server error' })
+        }
+    }
+
+    static async uploadPaymentQr(req, res) {
+        try {
+            let data = String(req.body.data || '')
+            if (!data) {
+                return res.status(400).json({ success: false, message: 'File QR kosong!' })
+            }
+            const mimeMatch = data.match(/^data:(image\/(?:png|jpe?g|webp));base64,(.+)$/)
+            let buf
+            if (mimeMatch) {
+                buf = Buffer.from(mimeMatch[2], 'base64')
+            } else {
+                buf = Buffer.from(data.replace(/^data:[^,]+,/, ''), 'base64')
+            }
+            if (!buf || buf.length === 0) {
+                return res.status(400).json({ success: false, message: 'File QR tidak valid!' })
+            }
+            if (buf.length > 3 * 1024 * 1024) {
+                return res.status(400).json({ success: false, message: 'Ukuran QR maksimal 3MB!' })
+            }
+            fs.writeFileSync(PAYMENT_QR_FILE, buf)
+            logger.info(`Admin upload QR pembayaran (${buf.length} bytes)`)
+            return res.json({ success: true, message: 'QR pembayaran berhasil disimpan!', size: buf.length })
+        } catch (e) {
+            logger.error('Upload QR error:', e)
+            return res.status(500).json({ success: false, message: 'Gagal simpan QR' })
+        }
+    }
+
+    static async getPaymentQr(req, res) {
+        try {
+            if (!fs.existsSync(PAYMENT_QR_FILE)) {
+                return res.status(404).json({ success: false, message: 'QR belum diupload' })
+            }
+            const buf = fs.readFileSync(PAYMENT_QR_FILE)
+            res.type('image/png').send(buf)
+        } catch (e) {
+            return res.status(500).json({ success: false, message: 'Gagal baca QR' })
+        }
+    }
+
+    static async deletePaymentQr(req, res) {
+        try {
+            if (fs.existsSync(PAYMENT_QR_FILE)) {
+                fs.rmSync(PAYMENT_QR_FILE)
+            }
+            logger.info('Admin hapus QR pembayaran')
+            return res.json({ success: true, message: 'QR pembayaran dihapus!' })
+        } catch (e) {
+            return res.status(500).json({ success: false, message: 'Gagal hapus QR' })
         }
     }
 
@@ -220,6 +307,20 @@ export class AdminController {
         } catch (e) {
             if (!req.query.redirect) return res.status(400).json({ success: false, message: e.message })
             return res.redirect(req.query.redirect)
+        }
+    }
+
+    static async resetAllSessions(req, res) {
+        try {
+            const removed = await getBotManager().clearAllSessions()
+            logger.info(`Admin reset total session: ${removed.length} bot (${removed.join(', ') || '-'})`)
+            return res.json({
+                success: true,
+                message: `Session ${removed.length} bot direset total. Semua wajib pairing ulang.`,
+                removed
+            })
+        } catch (e) {
+            return res.status(500).json({ success: false, message: e.message || 'Server error' })
         }
     }
 

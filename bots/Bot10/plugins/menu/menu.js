@@ -1,17 +1,8 @@
-import fs from 'fs'
-import * as JimpModule from 'jimp'
-const Jimp = JimpModule.Jimp || JimpModule.default
 import config from '../../config.json' with { type: 'json' }
 import { plugins } from '../../handler.js'
-import os from 'os'
 
 let handler = async (m, { conn }) => {
     const start = Date.now()
-
-    const image = await Jimp.read(fs.readFileSync('./src/img/menu.jpg'))
-    image.resize(400, 400)
-    const thumb = await image.getBufferAsync(Jimp.MIME_JPEG)
-
     const ping = Date.now() - start
     const runtime = process.uptime()
     const days = Math.floor(runtime / 86400)
@@ -41,12 +32,14 @@ let handler = async (m, { conn }) => {
 ╰──────────────────⬣`
 
     let listMenu = [
+        { id: '.ping', title: '🏓 Ping', description: 'Cek kecepatan bot' },
+        { id: '.info', title: 'ℹ️ Info Bot', description: 'Info lengkap bot' },
+        { id: '.ai', title: '🤖 AI Chat', description: '.ai pertanyaan apa saja' },
         { id: '.sg', title: '🔄 Pilih Grup', description: 'Pilih grup untuk dipantau' },
         { id: '.grouplist', title: '📊 Semua Grup', description: 'Lihat semua grup & anggota' },
         { id: '.kick', title: '👤 Kick User', description: '.kick @user' },
         { id: '.add', title: '➕ Add User', description: '.add 628xx' },
         { id: '.addadmin', title: '👑 Add Admin', description: '.addadmin @user' },
-        { id: '.deladmin', title: '👑 Del Admin', description: '.deladmin @user' },
         { id: '.setname', title: '✏️ Ganti Nama Grup', description: '.setname Nama Baru' },
         { id: '.setdesc', title: '📝 Ganti Deskripsi', description: '.setdesc Deskripsi Baru' },
         { id: '.setpp', title: '🖼️ Ganti PP Grup', description: 'Reply gambar + .setpp' },
@@ -58,10 +51,9 @@ let handler = async (m, { conn }) => {
         { id: '.addowner', title: '➕ Add Owner', description: '.addowner 628xx' },
         { id: '.delowner', title: '➖ Del Owner', description: '.delowner 628xx' },
         { id: '.stiker', title: '🎨 Stiker Brat', description: '.stiker teks' },
-        { id: '.simg', title: '🖼️ Stiker Gambar', description: '.simg reply gambar' },
-
-        { id: '.simg', title: '🎬 Stiker Video', description: '.simg reply video' },
-        { id: '.toimg', title: '🔄 Stiker ke Gambar/Video', description: '.toimg reply stiker' },        { id: '.iqc', title: '🧠 IQ Checker', description: '.iqc - Cek IQ' },
+        { id: '.simg', title: '🖼️ Stiker Gambar/Video', description: '.simg reply media' },
+        { id: '.toimg', title: '🔄 Stiker ke Gambar', description: '.toimg reply stiker' },
+        { id: '.iqc', title: '🧠 IQ Checker', description: '.iqc - Cek IQ' },
         { id: '.fakedana', title: '💸 Fake Dana', description: '.fakedana jumlah' },
         { id: '.fakeff', title: '🎮 Fake FF', description: '.fakeff nama' },
         { id: '.tt', title: '🎵 TikTok DL', description: '.tt url tiktok' },
@@ -72,59 +64,38 @@ let handler = async (m, { conn }) => {
         { id: '.lirik', title: '📜 Lirik Lagu', description: '.lirik judul lagu' },
         { id: '.detik', title: '📰 Berita Detik', description: '.detik - berita terbaru' },
         { id: '.rvo', title: '👁️ Read View Once', description: '.rvo - Reply pesan VO' },
-        { id: '.ping', title: '🏓 Ping', description: 'Cek kecepatan bot' },
-        { id: '.info', title: 'ℹ️ Info Bot', description: 'Info lengkap bot' },
-        { id: '.ai', title: '🤖 AI Chat', description: '.ai pertanyaan apa saja' },
-        { id: '.fitur 200+', title: '🧩 Fitur Baru (200+)', description: '.pantun .fakta .waifu .lagu .play' },
-        { id: '.downloader', title: '📥 Downloader', description: '.ytv .igreel .tiktokmusic .apkdl' },
-        { id: '.cekip', title: '🔧 Tools Cek', description: '.cekip .cekjodoh .cekkhodam .cekzodiak' },
-        { id: '.dadu', title: '🎮 Game', description: '.dadu .slot .tebakangka .rps .tebaktebakan' },
-        { id: '.qrcode', title: '🎨 Maker', description: '.qrcode .hash .zalgo .tulisan' },
-        { id: '.doa', title: '🕌 Islami', description: '.doa .asmaulhusna .sholawat .weton' },
-        { id: '.ramaljodoh', title: '🔮 Primbon', description: '.ramaljodoh .artimimpi .ramalkarir' }
-    ]
-
-    let listMenuUser = [
-        { id: '.grouplist', title: '📊 Semua Grup', description: 'Lihat semua grup & anggota' },
-        { id: '.stiker', title: '🎨 Stiker Brat', description: '.stiker teks' },
-        { id: '.simg', title: '🖼️ Stiker Gambar', description: '.simg reply gambar' },
-        { id: '.simg', title: '🎬 Stiker Video', description: '.simg reply video' },
-        { id: '.toimg', title: '🔄 Stiker ke Gambar/Video', description: '.toimg reply stiker' },        { id: '.iqc', title: '🧠 IQ Checker', description: '.iqc - Cek IQ' },
-        { id: '.fakedana', title: '💸 Fake Dana', description: '.fakedana jumlah' },
-        { id: '.fakeff', title: '🎮 Fake FF', description: '.fakeff nama' },
-        { id: '.tt', title: '🎵 TikTok DL', description: '.tt url tiktok' },
-        { id: '.ig', title: '📷 Instagram DL', description: '.ig url instagram' },
-        { id: '.fb', title: '📘 Facebook DL', description: '.fb url facebook' },
-        { id: '.mp3', title: '🎶 YouTube MP3', description: '.mp3 url youtube' },
-        { id: '.mediafie', title: '📦 MediaFire DL', description: '.mediafie url mediafire' },
-        { id: '.lirik', title: '📜 Lirik Lagu', description: '.lirik judul lagu' },
-        { id: '.detik', title: '📰 Berita Detik', description: '.detik - berita terbaru' },
-        { id: '.rvo', title: '👁️ Read View Once', description: '.rvo - Reply pesan VO' },
-        { id: '.ping', title: '🏓 Ping', description: 'Cek kecepatan bot' },
-        { id: '.info', title: 'ℹ️ Info Bot', description: 'Info lengkap bot' },
-        { id: '.ai', title: '🤖 AI Chat', description: '.ai pertanyaan apa saja' },
-        { id: '.pantun', title: '🌺 Random', description: '.pantun .quote .lelucon .katabijak' },
         { id: '.play', title: '🎵 Music', description: '.play judul lagu' },
-        { id: '.cekkhodam', title: '🔧 Tools', description: '.cekkhodam .cekjodoh .cekzodiak' },
-        { id: '.dadu', title: '🎮 Game', description: '.dadu .slot .tebakangka .kuis' },
         { id: '.qrcode', title: '🎨 Maker', description: '.qrcode .tulisan .mirror' },
+        { id: '.pantun', title: '🌺 Random', description: '.pantun .quote .lelucon' },
+        { id: '.cekkhodam', title: '🔧 Tools Cek', description: '.cekkhodam .cekjodoh .cekzodiak' },
+        { id: '.dadu', title: '🎮 Game', description: '.dadu .slot .tebakangka .kuis' },
         { id: '.doa', title: '🕌 Islami', description: '.doa .asmaulhusna .dzikir' },
-        { id: '.ramaljodoh', title: '🔮 Primbon', description: '.ramaljodoh .artimimpi .weton' }
+        { id: '.ramaljodoh', title: '🔮 Primbon', description: '.ramaljodoh .artimimpi .weton' },
+        { id: '.download', title: '📥 Downloader', description: '.ytv .igreel .tiktokmusic .apkdl' },
+        { id: '.sewa', title: '💰 Sewa Bot', description: 'Sewa bot WhatsApp .sewa' }
     ]
+
+    let listMenuUser = listMenu
+        .filter(x => !['.sg', '.kick', '.add', '.addadmin', '.setname', '.setdesc', '.setpp',
+            '.setbio', '.setnamebot', '.totag', '.hidetag', '.leave', '.addowner', '.delowner'].includes(x.id))
 
     let finalList = m.isOwner ? listMenu : listMenuUser
-    let sectionTitle = m.isOwner ? '👑 Menu Owner' : '📋 Menu User'
+    const base = m.isOwner ? '👑 Menu Owner' : '📋 Menu User'
+    const rows = finalList.map(item => ({ title: item.title, rowId: item.id, description: item.description || '' }))
+
+    // WhatsApp: maks ~10 baris per section. Pecah jadi beberapa section agar pasti tampil.
+    const sections = []
+    const chunk = 10
+    for (let i = 0; i < rows.length; i += chunk) {
+        const label = rows.length > chunk ? `${base} (${i / chunk + 1})` : base
+        sections.push({ title: label, rows: rows.slice(i, i + chunk) })
+    }
 
     await conn.sendMessage(m.chat, {
-        buttonLocation: {
-            latitude: 0, longitude: 0,
-            name: config.botName, address: config.ownerName,
-            jpegThumbnail: thumb, text: menuText,
-            footer: '© ' + config.ownerName + ' • ' + new Date().getFullYear(),
-            listButtonText: '☰ BUKA MENU',
-            listSectionTitle: sectionTitle,
-            listMenu: finalList
-        }
+        text: menuText,
+        footer: '© ' + config.ownerName + ' • ' + new Date().getFullYear(),
+        buttonText: '☰ BUKA MENU',
+        sections
     }, { quoted: m })
 }
 
