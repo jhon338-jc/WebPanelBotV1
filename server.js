@@ -16,11 +16,17 @@ import { getSewaManager } from './managers/SewaManager.js'
 import { logger } from './utils/logger.js'
 import { verifyToken } from './utils/helpers.js'
 import { readSettings } from './utils/settings.js'
+import { syncPlugins } from './scripts/sync-plugin.js'
 import routes from './routes/index.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 initDatabase()
+try {
+    syncPlugins(false)
+} catch (e) {
+    console.error('[SYNC] Gagal sinkronisasi plugin:', e.message)
+}
 const botManager = getBotManager()
 const sewaManager = getSewaManager()
 

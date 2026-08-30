@@ -28,6 +28,18 @@ bots/*/database/
 bots/*/session/
 bots/*/tmp/
 
+# Plugin hasil sync-duplikasi di Bot2..Bot10 (source of truth = Bot1/plugins).
+# File tracked lama tetap ke-track, hanya file duplikat baru yang di-ignore.
+bots/Bot2/plugins/*
+bots/Bot3/plugins/*
+bots/Bot4/plugins/*
+bots/Bot5/plugins/*
+bots/Bot6/plugins/*
+bots/Bot7/plugins/*
+bots/Bot8/plugins/*
+bots/Bot9/plugins/*
+bots/Bot10/plugins/*
+
 # OS
 .DS_Store
 

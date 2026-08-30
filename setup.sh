@@ -67,8 +67,6 @@ else
             cp -r "$ROOT/bots/Bot1" "$B"
             # Hapus auth & database biar bot bersih (wajib pairing ulang)
             rm -rf "$B/auth" "$B/database" "$B/tmp"
-            # Hapus plugin sewa: hanya Bot1 yang jadi bot admin (handle transaksi)
-            rm -f "$B/plugins/sewa.js"
             # Set nama unik per bot di config.json
             if command -v node >/dev/null 2>&1; then
                 node -e "
@@ -83,6 +81,14 @@ else
             echo "    Bot$i -> di-copy dari Bot1 (nama: Jhon338 - Bot$i)"
         fi
     done
+fi
+
+# 2d) Sinkronkan plugins Bot1 -> semua bot (fitur baru ikut semua bot).
+#     Bot1 source of truth; bot lain hanya perlu copy saat--
+#     fitur baru ditambahkan (Bot1/plugins berubah).
+echo "[*] Sinkronkan plugins dari Bot1 ke Bot2..Bot${MAX_BOTS} ..."
+if command -v node >/dev/null 2>&1 && [ -f "$ROOT/scripts/sync-plugin.js" ]; then
+    node "$ROOT/scripts/sync-plugin.js" || echo "    [!] Sync plugin gagal (dilewati)."
 fi
 
 # 3) Symlink node_modules tiap bot -> shared

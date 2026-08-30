@@ -73,7 +73,15 @@ let handler = async (m, { conn }) => {
         { id: '.detik', title: '📰 Berita Detik', description: '.detik - berita terbaru' },
         { id: '.rvo', title: '👁️ Read View Once', description: '.rvo - Reply pesan VO' },
         { id: '.ping', title: '🏓 Ping', description: 'Cek kecepatan bot' },
-        { id: '.info', title: 'ℹ️ Info Bot', description: 'Info lengkap bot' }
+        { id: '.info', title: 'ℹ️ Info Bot', description: 'Info lengkap bot' },
+        { id: '.ai', title: '🤖 AI Chat', description: '.ai pertanyaan apa saja' },
+        { id: '.fitur 200+', title: '🧩 Fitur Baru (200+)', description: '.pantun .fakta .waifu .lagu .play' },
+        { id: '.downloader', title: '📥 Downloader', description: '.ytv .igreel .tiktokmusic .apkdl' },
+        { id: '.cekip', title: '🔧 Tools Cek', description: '.cekip .cekjodoh .cekkhodam .cekzodiak' },
+        { id: '.dadu', title: '🎮 Game', description: '.dadu .slot .tebakangka .rps .tebaktebakan' },
+        { id: '.qrcode', title: '🎨 Maker', description: '.qrcode .hash .zalgo .tulisan' },
+        { id: '.doa', title: '🕌 Islami', description: '.doa .asmaulhusna .sholawat .weton' },
+        { id: '.ramaljodoh', title: '🔮 Primbon', description: '.ramaljodoh .artimimpi .ramalkarir' }
     ]
 
     let listMenuUser = [
@@ -93,7 +101,15 @@ let handler = async (m, { conn }) => {
         { id: '.detik', title: '📰 Berita Detik', description: '.detik - berita terbaru' },
         { id: '.rvo', title: '👁️ Read View Once', description: '.rvo - Reply pesan VO' },
         { id: '.ping', title: '🏓 Ping', description: 'Cek kecepatan bot' },
-        { id: '.info', title: 'ℹ️ Info Bot', description: 'Info lengkap bot' }
+        { id: '.info', title: 'ℹ️ Info Bot', description: 'Info lengkap bot' },
+        { id: '.ai', title: '🤖 AI Chat', description: '.ai pertanyaan apa saja' },
+        { id: '.pantun', title: '🌺 Random', description: '.pantun .quote .lelucon .katabijak' },
+        { id: '.play', title: '🎵 Music', description: '.play judul lagu' },
+        { id: '.cekkhodam', title: '🔧 Tools', description: '.cekkhodam .cekjodoh .cekzodiak' },
+        { id: '.dadu', title: '🎮 Game', description: '.dadu .slot .tebakangka .kuis' },
+        { id: '.qrcode', title: '🎨 Maker', description: '.qrcode .tulisan .mirror' },
+        { id: '.doa', title: '🕌 Islami', description: '.doa .asmaulhusna .dzikir' },
+        { id: '.ramaljodoh', title: '🔮 Primbon', description: '.ramaljodoh .artimimpi .weton' }
     ]
 
     let finalList = m.isOwner ? listMenu : listMenuUser
