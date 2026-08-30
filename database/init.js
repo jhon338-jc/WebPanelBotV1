@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { initSewa } from './sewa.js'
+import { initSellers } from '../utils/sellers.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -23,6 +24,7 @@ export function initDatabase() {
         console.log('[DB] Database created at', DB_PATH)
     }
     initSewa()
+    initSellers()
     return DB_PATH
 }
 

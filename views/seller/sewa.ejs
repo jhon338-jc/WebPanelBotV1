@@ -1,0 +1,92 @@
+<% content = `
+<div class="space-y">
+    <div class="grid-stats">
+        <div class="card-brutal stat-card">
+            <div class="flex-bt">
+                <span class="stat-label">Total Transaksi Saya</span>
+                <span class="stat-icon" style="background:#8ecae6"><i class="fas fa-receipt"></i></span>
+            </div>
+            <div>${stats.total}</div>
+        </div>
+        <div class="card-brutal stat-card">
+            <div class="flex-bt">
+                <span class="stat-label">Bot Aktif</span>
+                <span class="stat-icon" style="background:#7bf1a8"><i class="fas fa-robot"></i></span>
+            </div>
+            <div>${stats.aktif}</div>
+        </div>
+        <div class="card-brutal stat-card">
+            <div class="flex-bt">
+                <span class="stat-label">Menunggu Verifikasi</span>
+                <span class="stat-icon" style="background:#ffd166"><i class="fas fa-hourglass-half"></i></span>
+            </div>
+            <div>${stats.menungguVerifikasi}</div>
+        </div>
+        <div class="card-brutal stat-card">
+            <div class="flex-bt">
+                <span class="stat-label">Pendapatan</span>
+                <span class="stat-icon" style="background:#ffb703"><i class="fas fa-coins"></i></span>
+            </div>
+            <div style="font-size:26px">Rp ${Number(stats.revenue).toLocaleString('id-ID')}</div>
+        </div>
+    </div>
+
+    <div class="card-brutal">
+        <div class="card-title"><i class="fas fa-list"></i> Daftar Transaksi (bot milikmu)</div>
+        <div class="table-wrap">
+            <table class="b-brutal">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User (WA)</th>
+                        <th>Paket</th>
+                        <th>Harga</th>
+                        <th>Bot</th>
+                        <th>Status</th>
+                        <th>Expired</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${transaksi.length === 0 ? '<tr><td colspan="8" style="text-align:center" class="muted">Belum ada transaksi di bot kamu.</td></tr>' : ''}
+                    ${transaksi.map(t => `
+                    <tr>
+                        <td><b>${t.id}</b></td>
+                        <td>${t.user_wa || '-'}</td>
+                        <td>${t.paketNama}</td>
+                        <td>${t.hargaFormatted}</td>
+                        <td>${t.botNama}</td>
+                        <td><span class="badge ${t.status === 'aktif' ? 'badge-green' : t.status === 'menunggu_pembayaran' || t.status === 'menunggu_verifikasi' ? 'badge-yellow' : t.status === 'menunggu_nomor' ? 'badge-blue' : t.status === 'menunggu_pairing' ? 'badge-purple' : t.status === 'expired' ? 'badge-red' : 'badge-gray'}">${t.status}</span></td>
+                        <td>${formatDateTime(t.expired_at)}</td>
+                        <td>
+                            <div class="row">
+                                ${t.status === 'menunggu_verifikasi' || t.status === 'menunggu_pembayaran' ? `
+                                    <button class="btn-brutal btn-brutal-sm btn-green" onclick="sewaAction('/api/seller/sewa/${t.id}/verify')"><i class="fas fa-check"></i> Verify</button>` : ''}
+                                ${t.status === 'aktif' || t.status === 'menunggu_pairing' ? `
+                                    <button class="btn-brutal btn-brutal-sm btn-red" onclick="sewaAction('/api/seller/sewa/${t.id}/cancel')"><i class="fas fa-ban"></i> Stop</button>` : ''}
+                                <button class="btn-brutal btn-brutal-sm btn-dark">${t.pairing_code || '-'}</button>
+                            </div>
+                        </td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+` %><%- include('../layouts/seller', { title: 'Sewa Saya', content: content }) %>
+<script>
+    function sewaAction(url) {
+        brutalConfirm({
+            title: url.includes('verify') ? 'Verify Pembayaran' : 'Stop Sewa',
+            message: url.includes('verify') ? 'Konfirmasi pembayaran sudah masuk?' : 'Hentikan sewa ini sekarang?',
+            confirmText: url.includes('verify') ? 'Verify' : 'Stop',
+            danger: !url.includes('verify'),
+            onConfirm: async () => {
+                const r = await fetch(url)
+                const d = await r.json()
+                showToast(d.message || 'OK', d.success ? 'success' : 'error')
+                if (d.success) setTimeout(() => location.reload(), 800)
+            }
+        })
+    }
+</script>

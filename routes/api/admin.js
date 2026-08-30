@@ -20,6 +20,11 @@ router.get('/bots/:folder/restart', botActionLimiter, AdminController.restartBot
 router.get('/bots/:folder/logout', botActionLimiter, AdminController.logoutBot)
 router.get('/bots/:folder/logs', AdminController.getBotLogs)
 router.post('/bots/:folder/input', botActionLimiter, AdminController.sendInput)
+router.post('/bots/:folder/assign', AdminController.assignBot)
+router.get('/sellers', AdminController.listSellers)
+router.post('/sellers', AdminController.createSeller)
+router.post('/sellers/:username', AdminController.updateSeller)
+router.delete('/sellers/:username', AdminController.deleteSeller)
 router.get('/system', AdminController.systemInfo)
 
 router.get('/sewa', SewaController.dashboard)

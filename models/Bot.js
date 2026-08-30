@@ -10,6 +10,7 @@ export class Bot {
             name,
             status: 'stopped',
             connected: false,
+            owner: null,
             last_active: null,
             created_at: new Date().toISOString()
         }
@@ -57,6 +58,24 @@ export class Bot {
     static getTotalBots() {
         const db = readDB()
         return db.bots.length
+    }
+
+    static setOwner(folder, owner) {
+        const db = readDB()
+        const bot = db.bots.find(b => b.folder === folder)
+        if (!bot) return null
+        bot.owner = owner || null
+        writeDB(db)
+        return { ...bot }
+    }
+
+    static findByOwner(username) {
+        return Bot.findAll().filter(b => (b.owner || null) === username)
+    }
+
+    static countRunningByOwner(username) {
+        const db = readDB()
+        return db.bots.filter(b => (b.owner || null) === username && b.status === 'running').length
     }
 
     static getActiveBots() {

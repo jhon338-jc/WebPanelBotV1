@@ -1,0 +1,141 @@
+<% content = `
+<div class="space-y">
+    <div class="flex-bt">
+        <h3 class="card-title" style="font-size:20px;margin-bottom:0"><i class="fas fa-robot"></i> Bot Saya</h3>
+        <div class="row">
+            <span class="badge badge-blue"><i class="fas fa-gem"></i> Kuota ${quota} bot</span>
+            <button class="btn-brutal btn-brutal-sm btn-blue" onclick="location.reload()"><i class="fas fa-sync"></i> Refresh</button>
+        </div>
+    </div>
+
+    ${bots.length === 0 ? `
+    <div class="card-brutal">
+        <h3 class="card-title"><i class="fas fa-info-circle"></i> Belum Ada Bot</h3>
+        <p class="muted">Bot belum ditugaskan ke akun kamu. Admin harus memindahkan bot ke akun kamu (halaman <b>Kelola Seller</b> di panel admin).</p>
+    </div>` : ''}
+
+    <div class="grid-bots">
+        ${bots.map(bot => {
+            const logs = (initialLogs && initialLogs[bot.folder]) || []
+            const statusBadge = bot.connected ? 'badge-green' : bot.realtimeStatus === 'running' ? 'badge-yellow' : 'badge-gray'
+            const statusText = bot.connected ? 'Connected' : bot.realtimeStatus === 'running' ? 'Starting' : 'Stopped'
+            return `
+            <div class="space-y">
+                <div class="card-brutal" id="bot-card-${bot.folder}">
+                    <div class="flex-bt mb-16">
+                        <h4 style="font-family:'Archivo Black',sans-serif;text-transform:uppercase">${bot.folder}</h4>
+                        <span class="badge ${statusBadge}">${statusText}</span>
+                    </div>
+
+                    <div class="space-y" style="gap:8px">
+                        <p class="muted"><i class="fas fa-clock"></i> ${bot.last_active ? new Date(bot.last_active).toLocaleString('id-ID') : '-'}</p>
+                    </div>
+
+                    ${bot.pairingCode ? `
+                        <div class="pairing-box" id="pairing-${bot.folder}">
+                            <div class="flex-bt mb-8">
+                                <p style="font-family:'Archivo Black',sans-serif;text-transform:uppercase;font-size:11px">
+                                    <i class="fas fa-link"></i> Kode Pairing
+                                </p>
+                                <button class="btn-brutal btn-brutal-sm btn-yellow" style="padding:4px 10px;font-size:10px" onclick="copyPairing('${bot.folder}', this)">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                            <p class="pairing-code" style="font-size:30px;background:var(--color-black);color:#fff3cd;border:3px solid var(--color-black);padding:10px;text-align:center;margin:8px 0">${bot.pairingCode}</p>
+                            <p class="muted" style="margin-top:6px">Buka WhatsApp &rarr; Perangkat Tertaut &rarr; Pairing Perangkat &rarr; Masukkan kode ini</p>
+                        </div>
+                    ` : ''}
+
+                    ${bot.waitingInput ? `
+                        <div class="input-wait-box">
+                            <div class="flex-bt">
+                                <p style="font-family:'Archivo Black',sans-serif;text-transform:uppercase;font-size:11px">
+                                    <i class="fas fa-keyboard"></i> Bot meminta input
+                                </p>
+                                <button class="btn-brutal btn-brutal-sm btn-blue" onclick="openPairingInput('${bot.folder}')">
+                                    <i class="fas fa-mobile-alt"></i> Kirim Nomor
+                                </button>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="row mt-16">
+                        <button onclick="sellerAction('/api/seller/bots/${bot.folder}/start', this)" class="btn-brutal btn-brutal-sm btn-green" style="flex:1"><i class="fas fa-play"></i> Start</button>
+                        <button onclick="sellerAction('/api/seller/bots/${bot.folder}/stop', this)" class="btn-brutal btn-brutal-sm btn-red" style="flex:1"><i class="fas fa-stop"></i> Stop</button>
+                        <button onclick="sellerAction('/api/seller/bots/${bot.folder}/restart', this)" class="btn-brutal btn-brutal-sm btn-blue" style="flex:1"><i class="fas fa-sync"></i> Restart</button>
+                    </div>
+                </div>
+                <div class="logbox" data-folder="${bot.folder}">
+                    ${logs.length > 0 ? logs.slice(-20).map(l =>
+                        '<div class="' + (l.level === 'error' ? 'log-error' : l.level === 'warn' ? 'log-warn' : 'log-info') + '">[' + new Date(l.timestamp).toLocaleTimeString('id-ID') + '] ' + l.message + '</div>'
+                    ).join('') : '<p class="log-info">Belum ada log</p>'}
+                </div>
+            </div>
+            `
+        }).join('')}
+    </div>
+</div>
+` %>
+
+<%- include('../layouts/seller', { title: 'Bot Saya', content: content }) %>
+
+<script>
+    async function sellerAction(url, btn) {
+        btn && (btn.disabled = true)
+        try {
+            const res = await fetch(url)
+            const data = await res.json()
+            showToast(data.message || (res.ok ? 'OK' : 'Gagal'), res.ok ? 'success' : 'error')
+        } catch (e) {
+            showToast('Gagal terhubung ke server', 'error')
+        }
+        btn && (btn.disabled = false)
+        setTimeout(() => location.reload(), 1200)
+    }
+
+    function openPairingInput(folder) {
+        brutalPrompt({
+            title: 'Input Nomor Telepon',
+            message: 'Masukkan nomor telepon bot (contoh: 628xxx) untuk memulai pairing.',
+            placeholder: '628xxxxxxx',
+            submitText: 'Kirim',
+            onSubmit: async (val) => {
+                try {
+                    const res = await fetch(`/api/seller/bots/${folder}/input`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ input: val })
+                    })
+                    const data = await res.json()
+                    showToast(data.message || 'Input terkirim!', data.success ? 'success' : 'error')
+                } catch (err) {
+                    showToast('Gagal kirim input', 'error')
+                }
+            }
+        })
+    }
+
+    function copyPairing(folder, btn) {
+        const el = document.querySelector(`#pairing-${folder} .pairing-code`)
+        if (!el) return
+        const code = el.textContent.trim()
+        const done = () => {
+            btn.innerHTML = '<i class="fas fa-check"></i> Ter-copy'
+            setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copy' }, 1500)
+        }
+        if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(code).then(done).catch(() => fallbackCopy(code, done))
+        } else fallbackCopy(code, done)
+    }
+    function fallbackCopy(text, done) {
+        const ta = document.createElement('textarea')
+        ta.value = text
+        ta.style.position = 'fixed'
+        ta.style.opacity = '0'
+        document.body.appendChild(ta)
+        ta.select()
+        try { document.execCommand('copy') } catch (e) {}
+        document.body.removeChild(ta)
+        done()
+    }
+</script>

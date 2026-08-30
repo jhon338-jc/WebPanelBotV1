@@ -1,9 +1,9 @@
 import jwt from 'jsonwebtoken'
 import { config } from '../config/config.js'
 
-export function generateAdminToken(settings) {
+export function generateAdminToken(settings, payload = {}) {
     return jwt.sign(
-        { username: settings.username, isAdmin: true, tv: settings.token_version || 0 },
+        { username: settings.username, isAdmin: true, tv: settings.token_version || 0, ...payload },
         config.jwtSecret,
         { expiresIn: '7d' }
     )

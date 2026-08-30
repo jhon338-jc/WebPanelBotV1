@@ -266,4 +266,119 @@ export class AdminController {
             return res.status(500).json({ success: false, message: 'Server error' })
         }
     }
+
+    // ==================== Kelola Seller ====================
+    static async listSellers(req, res) {
+        try {
+            const { listSellers, getSeller } = await import('../utils/sellers.js')
+            const { readSewa, STATUS, PAKET } = await import('../database/sewa.js')
+            const botManager = getBotManager()
+            const sewa = readSewa()
+
+            const sellers = listSellers().map(s => {
+                const botList = Bot.findByOwner(s.username)
+                const running = botList.filter(b =>
+                    (botManager.getBotStatus(b.folder).status || b.status) === 'running').length
+                const revenue = sewa.transaksi
+                    .filter(t => t.bot_folder && botList.some(b => b.folder === t.bot_folder)
+                        && [STATUS.AKTIF, STATUS.EXPIRED].includes(t.status))
+                    .reduce((sum, t) => sum + (PAKET[t.paket]?.harga || 0), 0)
+                const totalTransaksi = sewa.transaksi
+                    .filter(t => t.bot_folder && botList.some(b => b.folder === t.bot_folder)).length
+                return {
+                    ...s,
+                    botCount: botList.length,
+                    running,
+                    revenue,
+                    totalTransaksi
+                }
+            })
+
+            const unassigned = Bot.findAll().filter(b => !b.owner).length
+
+            if (req.baseUrl.startsWith('/api')) {
+                return res.json({ success: true, sellers, unassigned })
+            }
+            res.render('admin/sellers', {
+                title: 'Kelola Seller',
+                sellers,
+                unassigned,
+                bots: Bot.findAll(),
+                formatDateTime
+            })
+        } catch (e) {
+            logger.error('List sellers error:', e)
+            res.status(500).render('error', { message: 'Server error', code: 500 })
+        }
+    }
+
+    static async createSeller(req, res) {
+        try {
+            const { createSeller } = await import('../utils/sellers.js')
+            const seller = createSeller({
+                username: req.body.username,
+                pin: req.body.pin,
+                plan: req.body.plan
+            })
+            logger.info(`Admin membuat seller: ${seller.username} (${seller.plan})`)
+            return res.json({ success: true, message: `Seller ${seller.username} dibuat!`, seller })
+        } catch (e) {
+            return res.status(400).json({ success: false, message: e.message })
+        }
+    }
+
+    static async updateSeller(req, res) {
+        try {
+            const { updateSeller } = await import('../utils/sellers.js')
+            const seller = updateSeller(req.params.username, {
+                pin: req.body.pin,
+                plan: req.body.plan,
+                status: req.body.status
+            })
+            if (!seller) return res.status(404).json({ success: false, message: 'Seller tidak ditemukan' })
+            logger.info(`Admin memperbarui seller: ${seller.username}`)
+            return res.json({ success: true, message: `Seller ${seller.username} diupdate!`, seller })
+        } catch (e) {
+            return res.status(400).json({ success: false, message: e.message })
+        }
+    }
+
+    static async deleteSeller(req, res) {
+        try {
+            const { deleteSeller } = await import('../utils/sellers.js')
+            const ok = deleteSeller(req.params.username)
+            if (!ok) return res.status(404).json({ success: false, message: 'Seller tidak ditemukan' })
+            // Lepas kepemilikan bot dari seller yang dihapus
+            for (const bot of Bot.findByOwner(req.params.username)) {
+                Bot.setOwner(bot.folder, null)
+            }
+            logger.info(`Admin menghapus seller: ${req.params.username}`)
+            return res.json({ success: true, message: `Seller ${req.params.username} dihapus!` })
+        } catch (e) {
+            return res.status(400).json({ success: false, message: e.message })
+        }
+    }
+
+    static async assignBot(req, res) {
+        try {
+            const { folder } = req.params
+            const { owner } = req.body || {}
+            const bot = Bot.findByFolder(folder)
+            if (!bot) return res.status(404).json({ success: false, message: 'Bot tidak ditemukan' })
+            if (folder === 'Bot1') {
+                return res.status(400).json({ success: false, message: 'Bot1 wajib milik admin (bot transaksi)' })
+            }
+            if (owner) {
+                const { getSeller } = await import('../utils/sellers.js')
+                if (!getSeller(String(owner))) {
+                    return res.status(400).json({ success: false, message: 'Seller tidak ditemukan' })
+                }
+            }
+            const updated = Bot.setOwner(folder, owner ? String(owner) : null)
+            logger.info(`Admin: ${folder} -> ${owner || 'admin (tanpa pemilik)'}`)
+            return res.json({ success: true, message: `${folder} kini milik ${owner || 'admin'}`, bot: updated })
+        } catch (e) {
+            return res.status(400).json({ success: false, message: e.message })
+        }
+    }
 }

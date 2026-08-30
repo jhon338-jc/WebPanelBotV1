@@ -448,30 +448,25 @@
         <div class="app">
             <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar(false)"></div>
             <aside class="sidebar" id="sidebar">
-                <div class="brand"><i class="fas fa-robot mr-2"></i> Jhon338 Panel</div>
+                <div class="brand"><i class="fas fa-store mr-2"></i> Seller Panel</div>
                 <nav>
-                    <a href="/admin/dashboard" class="nav-link <%= title === 'Dashboard' ? 'active' : '' %>">
+                    <a href="/seller/dashboard" class="nav-link <%= title === 'Dashboard Seller' ? 'active' : '' %>">
                         <i class="fas fa-chart-line"></i> Dashboard
                     </a>
-                    <a href="/admin/bots" class="nav-link <%= title === 'Manage Bots' ? 'active' : '' %>">
-                        <i class="fas fa-robot"></i> Bots
+                    <a href="/seller/bots" class="nav-link <%= title === 'Bot Saya' ? 'active' : '' %>">
+                        <i class="fas fa-robot"></i> Bot Saya
                     </a>
-                    <a href="/admin/sewa" class="nav-link <%= title === 'Kelola Sewa' ? 'active' : '' %>">
-                        <i class="fas fa-hand-holding-usd"></i> Sewa
-                    </a>
-                    <a href="/admin/sellers" class="nav-link <%= title === 'Kelola Seller' ? 'active' : '' %>">
-                        <i class="fas fa-store"></i> Seller
-                    </a>
-                    <a href="/admin/help" class="nav-link <%= title === 'Panduan Fitur' ? 'active' : '' %>">
-                        <i class="fas fa-book"></i> Panduan Fitur
-                    </a>
-                    <a href="/admin/settings" class="nav-link <%= title === 'Settings' ? 'active' : '' %>">
-                        <i class="fas fa-cog"></i> Settings
+                    <a href="/seller/sewa" class="nav-link <%= title === 'Sewa Saya' ? 'active' : '' %>">
+                        <i class="fas fa-hand-holding-usd"></i> Sewa Saya
                     </a>
                     <hr class="nav-divider">
                     <button onclick="logout()" class="nav-link danger">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </button>
+                    <div style="padding:14px;margin-top:10px;border:2px solid #2a2a2a;font-size:11px;color:#9a978c">
+                        <i class="fas fa-gem"></i> Paket <%= (user.plan||'seller') === 'premium' ? 'PREMIUM' : 'SELLER' %> ·
+                        Kuota <%= user.max_bots %> bot
+                    </div>
                 </nav>
             </aside>
             <div class="main">
@@ -487,7 +482,7 @@
                             <i class="fas fa-user"></i>
                             <span><%= user.username %></span>
                         </span>
-                        <span class="badge badge-red">ADMIN</span>
+                        <span class="badge badge-blue">SELLER · <%= (user.plan||'seller').toUpperCase() %></span>
                     </div>
                 </header>
                 <main class="content">

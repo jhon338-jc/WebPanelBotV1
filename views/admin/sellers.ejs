@@ -1,0 +1,183 @@
+<% content = `
+<div class="space-y">
+    <div class="flex-bt">
+        <div class="row">
+            <h3 class="card-title" style="font-size:20px;margin-bottom:0"><i class="fas fa-store"></i> Kelola Seller</h3>
+            <span class="badge badge-blue">${sellers.length} seller</span>
+            <span class="badge badge-gray">${unassigned} bot bebas</span>
+        </div>
+        <button class="btn-brutal btn-brutal-sm btn-green" onclick="openCreateSeller()"><i class="fas fa-plus"></i> Tambah Seller</button>
+    </div>
+
+    <div class="card-brutal">
+        <p class="muted"><i class="fas fa-info-circle"></i> Seller <b>biasa</b> bisa menjalankan maks. <b>10 bot</b>; seller <b>premium</b> maks. <b>50 bot</b>. Admin bebas tanpa batas. Bot1 khusus admin (tidak bisa ditugaskan).</p>
+    </div>
+
+    <div class="card-brutal">
+        <div class="card-title"><i class="fas fa-users"></i> Daftar Seller</div>
+        <div class="table-wrap">
+            <table class="b-brutal">
+                <thead>
+                    <tr><th>User</th><th>Plan</th><th>Status</th><th>Bot</th><th>Running</th><th>Transaksi</th><th>Pendapatan</th><th>PIN</th><th>Aksi</th></tr>
+                </thead>
+                <tbody>
+                    ${sellers.length === 0 ? '<tr><td colspan="9" class="muted" style="text-align:center">Belum ada seller. Klik "Tambah Seller".</td></tr>' : ''}
+                    ${sellers.map(s => `
+                    <tr>
+                        <td><b>@${s.username}</b></td>
+                        <td><span class="badge ${s.plan === 'premium' ? 'badge-purple' : 'badge-yellow'}">${s.plan === 'premium' ? 'PREMIUM' : 'SELLER'}</span></td>
+                        <td><span class="badge ${s.status === 'aktif' ? 'badge-green' : 'badge-red'}">${s.status}</span></td>
+                        <td>${s.botCount}/${s.max_bots}</td>
+                        <td>${s.running}</td>
+                        <td>${s.totalTransaksi}</td>
+                        <td>Rp ${Number(s.revenue || 0).toLocaleString('id-ID')}</td>
+                        <td><span class="pass-view" title="${s.pin}">****</span></td>
+                        <td>
+                            <div class="row">
+                                <button class="btn-brutal btn-brutal-sm btn-blue" onclick="openAssign('${s.username}')"><i class="fas fa-exchange-alt"></i> Tugaskan Bot</button>
+                                <button class="btn-brutal btn-brutal-sm btn-yellow" onclick="openEditSeller('${s.username}')"><i class="fas fa-cog"></i></button>
+                                <button class="btn-brutal btn-brutal-sm btn-red" onclick="removeSeller('${s.username}')"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card-brutal">
+        <div class="card-title"><i class="fas fa-robot"></i> Bot Bebas (tanpa pemilik → milik admin)</div>
+        <div class="row">
+            ${unassigned === 0 ? '<span class="muted">Semua bot sudah punya pemilik.</span>' : ''}
+            ${bots.filter(b => !b.owner).map(b => `
+            <span class="badge badge-green" style="cursor:pointer" onclick="openAssignToBot('${b.folder}')" title="Klik = tugaskan ke seller">${b.folder}</span>`).join('')}
+        </div>
+        <p class="muted mt-12">Klik badge bot untuk menugaskan langsung ke seller tertentu.</p>
+    </div>
+</div>
+` %>
+
+<%- include('../layouts/main', { title: 'Kelola Seller', content: content }) %>
+
+<script>
+    let bots = <%= JSON.stringify(bots.map(b => ({ folder: b.folder, owner: b.owner }))) %>
+
+    function openCreateSeller() {
+        brutalPrompt({
+            title: 'Tambah Seller',
+            message: 'Username (huruf/angka/_), PIN 4-10 digit, lalu pilih plan.',
+            placeholder: 'username',
+            submitText: 'Lanjut',
+            onSubmit: (username) => {
+                brutalPrompt({
+                    title: 'PIN ' + username,
+                    message: 'PIN 4-10 digit.',
+                    placeholder: '0000',
+                    inputType: 'password',
+                    submitText: 'Lanjut',
+                    onSubmit: (pin) => {
+                        brutalPrompt({
+                            title: 'Plan ' + username,
+                            message: 'Ketik "seller" (10 bot) atau "premium" (50 bot).',
+                            placeholder: 'seller / premium',
+                            submitText: 'Buat Seller',
+                            onSubmit: (plan) => createSeller(username, pin, plan.trim().toLowerCase())
+                        })
+                    }
+                })
+            }
+        })
+    }
+
+    async function createSeller(username, pin, plan) {
+        if (!['seller', 'premium'].includes(plan)) {
+            showToast('Plan harus seller atau premium', 'warning')
+            return
+        }
+        const r = await fetch('/api/admin/sellers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, pin, plan })
+        })
+        const d = await r.json()
+        showToast(d.message || 'Gagal', d.success ? 'success' : 'error')
+        if (d.success) setTimeout(() => location.reload(), 800)
+    }
+
+    function openAssign(seller) {
+        const free = bots.filter(b => !b.owner)
+        if (free.length === 0) {
+            showToast('Tidak ada bot bebas. Lepas bot dari seller lain dulu.', 'warning')
+            return
+        }
+        brutalPrompt({
+            title: 'Tugaskan Bot ke @' + seller,
+            message: 'Ketik folder bot bebas: ' + free.map(b => b.folder).join(', '),
+            placeholder: 'Bot10',
+            submitText: 'Tugaskan',
+            onSubmit: (folder) => assignBot(seller, folder.trim())
+        })
+    }
+
+    function openAssignToBot(folder) {
+        brutalPrompt({
+            title: 'Tugaskan ' + folder,
+            message: 'Ketik username seller tujuan (atau "-" untuk lepas ke admin).',
+            placeholder: 'username_seller / -',
+            submitText: 'Tugaskan',
+            onSubmit: (username) => assignBot(username.trim(), folder)
+        })
+    }
+
+    async function assignBot(sellerUsername, folder) {
+        if (!folder) return showToast('Folder bot wajib diisi', 'warning')
+        const r = await fetch('/api/admin/bots/' + folder + '/assign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ owner: sellerUsername === '-' ? '' : sellerUsername })
+        })
+        const d = await r.json()
+        showToast(d.message || 'Gagal', d.success ? 'success' : 'error')
+        if (d.success) setTimeout(() => location.reload(), 800)
+    }
+
+    function openEditSeller(username) {
+        brutalPrompt({
+            title: 'Edit @' + username,
+            message: 'Ketik "premium", "seller", "nonaktif", "aktif", atau PIN baru.',
+            placeholder: 'contoh: premium',
+            submitText: 'Update',
+            onSubmit: (val) => updateSeller(username, val.trim())
+        })
+    }
+
+    async function updateSeller(username, raw) {
+        const payload = { pin: undefined, plan: undefined, status: undefined }
+        if (raw === 'premium' || raw === 'seller') payload.plan = raw
+        else if (raw === 'aktif' || raw === 'nonaktif') payload.status = raw
+        else if (/^[0-9]{4,10}$/.test(raw)) payload.pin = raw
+        else return showToast('Input tidak dikenali', 'warning')
+        const r = await fetch('/api/admin/sellers/' + username, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        const d = await r.json()
+        showToast(d.message || 'Gagal', d.success ? 'success' : 'error')
+        if (d.success) setTimeout(() => location.reload(), 800)
+    }
+
+    function removeSeller(username) {
+        brutalConfirm({
+            title: 'Hapus @' + username,
+            message: 'Seller dan bot miliknya akan dihapus/dikembalikan ke admin. Lanjut?',
+            confirmText: 'Hapus',
+            onConfirm: async () => {
+                const r = await fetch('/api/admin/sellers/' + username, { method: 'DELETE' })
+                const d = await r.json()
+                showToast(d.message || 'Gagal', d.success ? 'success' : 'error')
+                if (d.success) setTimeout(() => location.reload(), 800)
+            }
+        })
+    }
+</script>

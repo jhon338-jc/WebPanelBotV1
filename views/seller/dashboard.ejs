@@ -1,0 +1,108 @@
+<% content = `
+<div class="space-y">
+    <div class="grid-stats">
+        <div class="card-brutal stat-card flex-bt">
+            <div>
+                <p class="stat-label">Bot Saya</p>
+                <p class="stat-value">${stats.totalBots}</p>
+            </div>
+            <div class="stat-icon" style="background:#8ecae6"><i class="fas fa-robot"></i></div>
+        </div>
+        <div class="card-brutal stat-card flex-bt">
+            <div>
+                <p class="stat-label">Bot Running</p>
+                <p class="stat-value" style="color:#118ab2">${stats.runningBots}<span style="font-size:14px;color:#5b584d"> / ${stats.quota}</span></p>
+            </div>
+            <div class="stat-icon" style="background:#b388eb"><i class="fas fa-play-circle"></i></div>
+        </div>
+        <div class="card-brutal stat-card flex-bt">
+            <div>
+                <p class="stat-label">Total Transaksi</p>
+                <p class="stat-value" style="color:#06a77d">${stats.totalTransaksi}</p>
+            </div>
+            <div class="stat-icon" style="background:#7bf1a8"><i class="fas fa-receipt"></i></div>
+        </div>
+        <div class="card-brutal stat-card flex-bt">
+            <div>
+                <p class="stat-label">Pendapatan</p>
+                <p class="stat-value" style="color:#ef476f">${'Rp ' + Number(stats.revenue).toLocaleString('id-ID')}</p>
+            </div>
+            <div class="stat-icon" style="background:#ff8fa3"><i class="fas fa-coins"></i></div>
+        </div>
+    </div>
+
+    <div class="card-brutal">
+        <h3 class="card-title"><i class="fas fa-bolt"></i> Quick Actions</h3>
+        <div class="row">
+            <button class="btn-brutal btn-brutal-sm btn-green" onclick="sellerStart()"><i class="fas fa-play"></i> Start Bot Bisa Dinyalakan</button>
+            <button class="btn-brutal btn-brutal-sm btn-red" onclick="sellerStop()"><i class="fas fa-stop"></i> Stop Semua Punyaku</button>
+        </div>
+        <p class="muted mt-12"><i class="fas fa-info-circle"></i> Quota bot seller: <b>${stats.runningBots}/${stats.quota}</b>. Upgrade ke paket <b>PREMIUM</b> (50 bot) hubungi admin.</p>
+    </div>
+
+    <div class="card-brutal">
+        <h3 class="card-title"><i class="fas fa-robot"></i> Status Bot Saya</h3>
+        <div class="table-wrap">
+            <table class="b-brutal">
+                <thead><tr><th>Bot</th><th>Status</th><th>Koneksi</th><th>Pairing</th><th>Aksi</th></tr></thead>
+                <tbody>
+                    ${stats.totalBots === 0 ? '<tr><td colspan="5" class="muted">Belum ada bot ditugaskan. Hubungi admin agar bot dipindah ke akun kamu.</td></tr>' : ''}
+                    ${bots.map(b => `
+                    <tr>
+                        <td><b>${b.folder}</b></td>
+                        <td><span class="badge ${b.realtimeStatus === 'running' ? 'badge-green' : 'badge-gray'}">${b.realtimeStatus || b.status}</span></td>
+                        <td>${b.connected ? '<span class="badge badge-yellow">CONNECTED</span>' : '<span class="badge badge-gray">OFFLINE</span>'}</td>
+                        <td>${b.pairingCode ? '<span class="pairing-code">' + b.pairingCode + '</span>' : '-'}</td>
+                        <td>
+                            <button class="btn-brutal btn-brutal-sm btn-green" onclick="sellerAction('/api/seller/bots/${b.folder}/start')"><i class="fas fa-play"></i></button>
+                            <button class="btn-brutal btn-brutal-sm btn-red" onclick="sellerAction('/api/seller/bots/${b.folder}/stop')"><i class="fas fa-stop"></i></button>
+                            <button class="btn-brutal btn-brutal-sm btn-blue" onclick="sellerAction('/api/seller/bots/${b.folder}/restart')"><i class="fas fa-sync"></i></button>
+                        </td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card-brutal">
+        <h3 class="card-title"><i class="fas fa-hand-holding-usd"></i> Transaksi Terbaru</h3>
+        <div class="table-wrap">
+            <table class="b-brutal">
+                <thead><tr><th>ID</th><th>User</th><th>Paket</th><th>Bot</th><th>Status</th></tr></thead>
+                <tbody>
+                    ${stats.totalTransaksi === 0 ? '<tr><td colspan="5" class="muted">Belum ada transaksi sewa di bot kamu.</td></tr>' : ''}
+                    ${transaksi.slice(0, 8).map(t => `
+                    <tr>
+                        <td><b>${t.id}</b></td>
+                        <td>${t.user_wa || '-'}</td>
+                        <td>${t.paketNama}</td>
+                        <td>${t.bot_folder || '-'}</td>
+                        <td><span class="badge badge-${t.status === 'aktif' ? 'green' : t.status === 'menunggu_verifikasi' || t.status === 'menunggu_pembayaran' ? 'yellow' : t.status === 'batal' ? 'red' : 'blue'}">${t.status}</span></td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+` %><%- include('../layouts/seller', { title: 'Dashboard Seller', content: content }) %>
+<script>
+    async function sellerAction(url) {
+        const res = await fetch(url)
+        const data = await res.json().catch(() => ({}))
+        showToast(data.message || (res.ok ? 'OK' : 'Gagal'), res.ok ? 'success' : 'error')
+        setTimeout(() => location.reload(), 900)
+    }
+    async function sellerStart() {
+        const res = await fetch('/api/seller/stats')
+        const data = await res.json()
+        const toStart = (data.bots || []).filter(b => b.realtimeStatus !== 'running')
+        for (const b of toStart.slice(0, 3)) await sellerAction('/api/seller/bots/' + b.folder + '/start')
+    }
+    async function sellerStop() {
+        const res = await fetch('/api/seller/stats')
+        const data = await res.json()
+        for (const b of (data.bots || [])) {
+            if (b.realtimeStatus === 'running') await sellerAction('/api/seller/bots/' + b.folder + '/stop')
+        }
+    }
+</script>
