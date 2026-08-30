@@ -138,7 +138,18 @@ export default async function handleMessage(conn, m) {
         if (m.sender?.includes('@newsletter')) return
 
         const { body, isButtonResponse } = extractCommandFromMessage(m)
-        if (!body) return
+        if (!body) {
+            // Pesan media tanpa caption (foto/video/doc/audio bukti bayar, dll):
+            // dispatching ke plugin yang punya trigger non-komando (mis. sewa.js onMedia).
+            if (m.mtype && /image|video|document|audio/.test(m.mtype)) {
+                for (const h of plugins.values()) {
+                    if (!h.onMedia) continue
+                    await h(m, { conn, args: [], text: '', command: '', prefix: '', notifReply: () => {} })
+                    return
+                }
+            }
+            return
+        }
         m.text = body
         m.isButtonResponse = isButtonResponse
 

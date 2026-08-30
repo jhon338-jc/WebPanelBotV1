@@ -360,10 +360,24 @@ let handler = async (m, { conn, text, args, command }) => {
         return
     }
 
-    // 4) User kirim media (bukti bayar) saat menunggu_pembayaran
+    // 4) User kirim media (bukti bayar) - kadang lanjut order tanpa .bayar dulu.
+    // Auto-reply QR/info pembayaran + otomatis catat ke panel.
     if (m.mtype && /image|video|document/.test(m.mtype)) {
         const trx = findTrx(t => t.user_wa === number && t.status === STATUS.MENUNGGU_PEMBAYARAN)
-        if (!trx) return
+        if (!trx) {
+            // Tidak ada trx menunggu bayar: beri info + QR payment supaya data tetap tercatat manual
+            const settings = readPanelSettings()
+            const qr = readQrBuffer()
+            const info = `🧐 Pesan foto diterima, tapi tidak ada transaksi *menunggu pembayaran* untuk nomor ini.\n\n` +
+                `Kalau kamu mau order sewa:\n\n` + menuText() +
+                `\n\nKalau udah bayar, admin bisa cek manual dari panel. Hubungi admin kalau ada kendala.`
+            if (qr) {
+                await conn.sendMessage(m.chat, { image: qr, caption: info })
+            } else {
+                await conn.sendMessage(m.chat, { text: info })
+            }
+            return
+        }
         const sewa = readSewa()
         const target = sewa.transaksi.find(t => t.id === trx.id)
         target.status = STATUS.MENUNGGU_VERIFIKASI
@@ -376,6 +390,8 @@ let handler = async (m, { conn, text, args, command }) => {
 
 handler.command = ['sewa', 'verify', 'bayar']
 handler.customPrefix = /^62\d{8,13}$/
+// Dipanggil juga saat ada media (foto/video/doc) tanpa caption -> bukti bayar auto-tercatat
+handler.onMedia = true
 export default handler
 
 // ---------------- Binder (dipanggil dari index.js tiap bot saat open) ----------------
