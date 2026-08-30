@@ -24,7 +24,7 @@ image.background(0x00000000)
         await conn.sendMessage(m.chat, { react: { text: '✅', key: m.key } })
         fs.unlinkSync(pngPath)
         fs.unlinkSync(webpPath)
-        setTimeout(async () => { await conn.sendMessage(m.chat, { delete: m.key }) }, 1000)
+        setTimeout(async () => { if (!m.isButtonResponse) await conn.sendMessage(m.chat, { delete: m.key }) }, 1000)
     } catch (e) {
         console.error(e)
         conn.sendMessage(m.chat, { text: '❌ Gagal membuat stiker!' })

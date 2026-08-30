@@ -3,6 +3,8 @@ const linkTracker = new Map()
 
 export function autoMod(conn, m) {
     if (!m.isGroup) return false
+    // Jangan pernah kena spam tracking: pesan dari bot sendiri atau respon menu (button/list/flow)
+    if (m.key?.fromMe || m.isButtonResponse) return false
     
     const groupId = m.chat
     const sender = m.sender
@@ -43,6 +45,8 @@ export function autoMod(conn, m) {
 
 export function linkDetector(conn, m) {
     if (!m.isGroup) return false
+    // Jangan pernah hapus: pesan bot sendiri atau respon menu (isi menu = buatan bot)
+    if (m.key?.fromMe || m.isButtonResponse) return false
     
     // Detect semua jenis link
     const linkPatterns = [

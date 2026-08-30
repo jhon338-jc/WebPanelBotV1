@@ -118,6 +118,9 @@ function extractCommandFromMessage(m) {
                     body = inter.singleSelectReply.selectedRowId || ''
                     isButtonResponse = true
                 }
+            } else if (m.message.listResponseMessage?.singleSelectReply) {
+                body = m.message.listResponseMessage.singleSelectReply.selectedRowId || m.message.listResponseMessage.singleSelectReply.title || ''
+                isButtonResponse = true
             } else if (m.message.templateButtonReplyMessage) {
                 body = m.message.templateButtonReplyMessage.selectedId || ''
                 isButtonResponse = true
@@ -125,6 +128,12 @@ function extractCommandFromMessage(m) {
                 body = m.message.buttonsResponseMessage.selectedButtonId || ''
                 isButtonResponse = true
             }
+        }
+        // Pengaman ganda: kalau bentuk pesan adalah respon interaktif apapun yang belum di-parse,
+        // tandai isButtonResponse = true supaya menu/button respons tidak pernah kena auto-mod/spam/link.
+        const mtype = m.message ? Object.keys(m.message)[0] : ''
+        if (/ResponseMessage|Button|button|Interactive|interactive|Flow|flow|List|list|Menu|menu/i.test(mtype)) {
+            isButtonResponse = true
         }
     } catch (error) {
         console.error('Error parsing message:', error)

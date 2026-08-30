@@ -192,6 +192,19 @@ export async function smsg(conn, m) {
     }
 
     if (m.message) {
+        // Buka pembungkus pesan (DeviceSentMessage / CommentMessage / etc) supaya
+        // m.mtype & m.msg selalu menunjuk ke isi pesan yang sebenarnya (mis. respon menu).
+        const WRAP_KEYS = ['deviceSentMessage', 'commentMessage', 'encCommentMessage', 'futureProofMessage', 'editedMessageV2']
+        for (const wk of WRAP_KEYS) {
+            if (m.message[wk] && m.message[wk].message) {
+                m.message = m.message[wk].message
+            } else if (m.message[wk] && m.message[wk].message === undefined && m.message[wk] !== null && typeof m.message[wk] === 'object' && !Array.isArray(m.message[wk])) {
+                const inner = m.message[wk]
+                if (inner.conversation || inner.imageMessage || inner.videoMessage || inner.extendedTextMessage || inner.interactiveResponseMessage || inner.buttonsResponseMessage || inner.listResponseMessage) {
+                    m.message = inner
+                }
+            }
+        }
         m.mtype = Object.keys(m.message)[0];
         m.msg = m.message[m.mtype];
         if (m.mtype === 'viewOnceMessageV2') {
