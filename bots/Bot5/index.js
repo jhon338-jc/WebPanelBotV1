@@ -138,6 +138,7 @@ async function start() {
         bind(socket)
 
         if (!state.creds.registered) {
+    // Cek kalau ada nomor dari env
     const envNumber = process.env.BOT_OWNER_NUMBER || ''
     let number = envNumber
     
@@ -174,6 +175,9 @@ async function start() {
             let m = messages[0]
             if (!m?.message || m.key.remoteJid === 'status@broadcast') return
             if (m.key.remoteJid?.includes('@newsletter')) return
+            // Jangan proses pesan yang dikirim bot SENDIRI (mis. hasil menu / balasan bot).
+            // Mencegah menu/link yang dihasilkan bot terdeteksi link lalu dihapus oleh bot itu sendiri.
+            if (m.key.fromMe) return
             m = await smsg(socket, m)
             if (m) await handleMessage(socket, m)
         } catch (e) {
@@ -197,6 +201,13 @@ async function start() {
                 if (!pluginsLoaded) {
                     await initPlugins()
                     pluginsLoaded = true
+                }
+                // Bind koneksi ke plugin sewa (untuk kirim notifikasi via Bot1)
+                if (process.cwd().endsWith('Bot1') || process.cwd().endsWith('bot1')) {
+                    try {
+                        const sewaMod = await import('./plugins/sewa.js')
+                        if (sewaMod?.initSewa) sewaMod.initSewa(socket)
+                    } catch (e) {}
                 }
                 console.log('[CONNECTION] Bot tersambung!')
                 await sendGroupListToOwner(socket)

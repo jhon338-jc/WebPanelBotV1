@@ -1,8 +1,14 @@
 // ================================================================
 //  scripts/sync-plugin.js
-//  Sinkronkan folder plugins dari Bot1 ke semua bot lain (Bot2..Bot50).
+//  Sinkronkan fitur bot dari Bot1 ke semua bot lain (Bot2..Bot50).
 //  Bot1 = source of truth. Fitur baru cukup ditambah di Bot1, lalu
 //  sync (via setup.sh / server.js / manual) menyebar ke seluruh bot.
+//
+//  Disinkronkan dari Bot1:
+//    - plugins/**        (fitur/command)
+//    - handler.js        (routing pesan, auto-mod: spam/link)
+//    - index.js          (main bot, koneksi baileys)
+//    - lib/**            (helper: msg.js, apis.js, autoMod.js, dll)
 //
 //  Dipakai:
 //    - node scripts/sync-plugin.js        (manual/CLI)
@@ -31,9 +37,7 @@ function syncOne(destDir) {
             } else {
                 let need = true
                 if (fs.existsSync(df)) {
-                    const s = fs.statSync(sf)
-                    const d = fs.statSync(df)
-                    need = s.size !== d.size
+                    need = fs.statSync(sf).size !== fs.statSync(df).size
                 }
                 if (need) {
                     fs.copyFileSync(sf, df)
@@ -42,7 +46,24 @@ function syncOne(destDir) {
             }
         }
     }
-    walk(SRC_DIR, destDir)
+    walk(SRC_DIR, path.join(destDir, 'plugins'))
+
+    // File inti bot + helper lib ikut disinkronkan dari Bot1
+    const srcRoot = path.join(BOTS_DIR, 'Bot1')
+    for (const rel of ['handler.js', 'index.js']) {
+        const sf = path.join(srcRoot, rel)
+        const df = path.join(destDir, rel)
+        if (!fs.existsSync(sf)) continue
+        if (fs.existsSync(df) && fs.statSync(sf).size === fs.statSync(df).size) continue
+        fs.copyFileSync(sf, df)
+        copied++
+    }
+    const libSrc = path.join(srcRoot, 'lib')
+    const libDest = path.join(destDir, 'lib')
+    if (fs.existsSync(libSrc)) {
+        if (!fs.existsSync(libDest)) fs.mkdirSync(libDest, { recursive: true })
+        walk(libSrc, libDest)
+    }
     return copied
 }
 
@@ -54,7 +75,7 @@ export function syncPlugins(verbose = false) {
     for (const name of fs.readdirSync(BOTS_DIR)) {
         if (!/^Bot\d+$/.test(name) || name === 'Bot1') continue
         try {
-            copied += syncOne(path.join(BOTS_DIR, name, 'plugins'))
+            copied += syncOne(path.join(BOTS_DIR, name))
             bots++
         } catch (e) {
             errors++
@@ -62,7 +83,7 @@ export function syncPlugins(verbose = false) {
         }
     }
     if (verbose) {
-        console.log(`[SYNC] Plugin Bot1 -> ${bots} bot selesai (${copied} file baru/ubah, ${errors} error)`)
+        console.log(`[SYNC] Bot1 -> ${bots} bot selesai (${copied} file baru/ubah, ${errors} error)`)
     }
     return { bots, copied, errors }
 }

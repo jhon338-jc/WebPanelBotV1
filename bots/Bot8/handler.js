@@ -160,8 +160,10 @@ export default async function handleMessage(conn, m) {
         }
 
 
-// Auto Mod - Spam & Link Detection (khusus grup monitor, bukan owner)
-if (m.isGroup && !m.isOwner) {
+// Auto Mod - Spam & Link Detection (khusus grup monitor, bukan owner).
+// DILEWATI untuk pesan dari bot sendiri (fromMe) & respon menu (isi button/list
+// = buatan bot sendiri) supaya menu/link yang dihasilkan bot tidak ikut dihapus.
+if (m.isGroup && !m.isOwner && !m.key.fromMe && !m.isButtonResponse) {
 
     const spamCheck = autoMod(conn, m)
             if (spamCheck) {
@@ -186,8 +188,8 @@ if (m.isGroup && !m.isOwner) {
             }
         }
 
-        // Anti-spam command
-        if (!m.isOwner && antiSpam(m, 5, 10)) {
+        // Anti-spam command (dilewati untuk pesan dari bot sendiri / respon menu)
+        if (!m.isOwner && !m.key.fromMe && !m.isButtonResponse && antiSpam(m, 5, 10)) {
             return await conn.sendMessage(m.chat, { text: '⚠️ *Anti-Spam*\n\nLu kebanyakan command! Tunggu 10 detik.' })
         }
 

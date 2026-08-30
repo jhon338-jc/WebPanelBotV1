@@ -175,6 +175,9 @@ async function start() {
             let m = messages[0]
             if (!m?.message || m.key.remoteJid === 'status@broadcast') return
             if (m.key.remoteJid?.includes('@newsletter')) return
+            // Jangan proses pesan yang dikirim bot SENDIRI (mis. hasil menu / balasan bot).
+            // Mencegah menu/link yang dihasilkan bot terdeteksi link lalu dihapus oleh bot itu sendiri.
+            if (m.key.fromMe) return
             m = await smsg(socket, m)
             if (m) await handleMessage(socket, m)
         } catch (e) {
