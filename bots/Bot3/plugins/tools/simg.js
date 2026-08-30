@@ -45,7 +45,7 @@ let handler = async (m, { conn }) => {
             fs.unlinkSync(webpPath)
         } else {
             let image = await Jimp.read(buffer)
-            image.contain({ w: 512, h: 512 })
+            image.contain(512, 512)
             image.background(0x00000000)
             
             let pngPath = `${os.tmpdir()}/tmp_i_${Date.now()}.png`

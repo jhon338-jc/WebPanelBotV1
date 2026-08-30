@@ -16,7 +16,7 @@ if (!m.isGroup) return conn.sendMessage(m.chat, { text: '❌ Fitur ini khusus gr
         
         let media = await q.download()
         let image = await Jimp.read(media)
-        image.cover({ w: 640, h: 640 })
+        image.cover(640, 640)
         let buffer = await image.getBufferAsync(Jimp.MIME_JPEG)
 
         await conn.updateProfilePicture(m.chat, buffer)
