@@ -1,85 +1,226 @@
 <%
-const sections = [
-  {
-    icon: 'users', title: 'GROUP COMMANDS',
-    commands: [
-      ['.sg', 'Pilih grup yang dipantau'],
-      ['.grouplist', 'Lihat semua grup'],
-      ['.kick @user', 'Kick member'],
-      ['.add 628xx', 'Tambah member'],
-      ['.addadmin @user', 'Jadikan admin'],
-      ['.deladmin @user', 'Hapus admin'],
-      ['.setname Nama', 'Ganti nama grup'],
-      ['.setdesc Teks', 'Ganti deskripsi grup'],
-      ['.totag', 'Tag semua member'],
-      ['.hidetag', 'Tag semua member (sembunyi)']
-    ]
-  },
-  {
-    icon: 'crown', title: 'OWNER COMMANDS',
-    commands: [
-      ['.addowner 628xx', 'Tambah owner'],
-      ['.delowner 628xx', 'Hapus owner'],
-      ['.public', 'Mode public'],
-      ['.self', 'Mode self'],
-      ['.setbio Teks', 'Ganti bio bot'],
-      ['.setnamebot Nama', 'Ganti nama bot'],
-      ['.setpp', 'Ganti foto profil bot'],
-      ['.leave', 'Keluar grup']
-    ]
-  },
-  {
-    icon: 'wrench', title: 'TOOLS COMMANDS',
-    commands: [
-      ['.menu', 'Tampilkan menu'],
-      ['.ping', 'Cek kecepatan bot'],
-      ['.info', 'Info bot'],
-      ['.stiker Teks', 'Buat stiker teks'],
-      ['.simg', 'Stiker dari gambar'],
-      ['.toimg', 'Stiker ke gambar'],
-      ['.tt URL', 'Download TikTok'],
-      ['.ig URL', 'Download Instagram'],
-      ['.fb URL', 'Download Facebook'],
-      ['.mp3 URL', 'Download YouTube audio'],
-      ['.lirik Judul', 'Cari lirik lagu'],
-      ['.iqc', 'Cek IQ'],
-      ['.fakedana Jumlah', 'Fake dana'],
-      ['.fakeff Nama', 'Fake FF'],
-      ['.detik', 'Berita detik'],
-      ['.rvo', 'Read view once']
-    ]
-  }
+const CATS = [
+  { icon: 'download', title: 'DOWNLOADER (25)', pairs: [
+    ['ytv | ytvideo | youtube', 'Download video YouTube'],
+    ['mp3 | ytmp3 | ytaudio', 'Download audio YouTube'],
+    ['ytsearch', 'Cari video YouTube'],
+    ['ytplaylist', 'Download playlist YouTube'],
+    ['ytchannel', 'Info/channel YouTube'],
+    ['ytthumbnail', 'Ambil thumbnail video'],
+    ['tt | tiktok | ttdl', 'Download TikTok tanpa watermark'],
+    ['tiktokmusic', 'Download audio TikTok'],
+    ['tiktokfoto', 'Download foto TikTok'],
+    ['ig | instagram | igdl', 'Download Instagram'],
+    ['igreel', 'Download Reel Instagram'],
+    ['igstory', 'Download Story Instagram'],
+    ['fb | facebook | fbdl', 'Download Facebook video'],
+    ['fbreel', 'Download Reels Facebook'],
+    ['twitter | twvid', 'Download Twitter/X video'],
+    ['spotify', 'Download lagu Spotify'],
+    ['soundcloud', 'Download lagu SoundCloud'],
+    ['apkdl', 'Download APK'],
+    ['gdrive', 'Download Google Drive'],
+    ['mediafie', 'Download MediaFire'],
+    ['mega', 'Download MEGA'],
+    ['pinterest', 'Download gambar Pinterest'],
+    ['terabox', 'Download Terabox'],
+    ['vidio', 'Download video Vidio'],
+    ['vimeo', 'Download Vimeo'],
+    ['dailymotion', 'Download Dailymotion'],
+    ['twitch', 'Download video Twitch'],
+    ['sfile', 'Download SFILE'],
+    ['sendspace', 'Download SendSpace'],
+    ['linkedin', 'Download video LinkedIn']
+  ]},
+  { icon: 'star', title: 'STICKER & MAKER (38)', pairs: [
+    ['stiker | s', 'Buat stiker dari gambar'],
+    ['simg | stikergambar', 'Stiker gambar (reply)'],
+    ['svideo', 'Stiker video'],
+    ['toimg | tovid', 'Stiker ke gambar/video'],
+    ['stext', 'Stiker teks ekspresif'],
+    ['scircle', 'Stiker lingkaran'],
+    ['sneon | snobg', 'Stiker efek neon / tanpa bg'],
+    ['scinematic | spixel | sblur', 'Stiker efek cinematic/pixel/blur'],
+    ['sbiru | smerah | sputih | sold | ssepia', 'Stiker filter warna/lama/sepia'],
+    ['scontrast | sbright', 'Stiker kontras/terang'],
+    ['scover | sglass | snature | svintas | snegatif', 'Stiker efek lain (cover, glass, dll)'],
+    ['qrcode | qr', 'Buat QR code'],
+    ['barcode | bar', 'Buat barcode'],
+    ['tulisan | box', 'Buat tulisan kotak ASCII'],
+    ['banner | spanduk', 'Buat banner teks'],
+    ['ascii', 'Ubah teks jadi ASCII art'],
+    ['emojimix', 'Gabung dua emoji'],
+    ['emojitex', 'Emoji jadi teks'],
+    ['signature', 'Buat tanda tangan digital'],
+    ['glitchtext | vaporwave | zalgo | mixcase | caps', 'Efek teks (glitch, vapor, dll)'],
+    ['mirror', 'Balik teks'],
+    ['encrypt | decrypt | hash', 'Enkripsi/dekripsi/hash teks'],
+    ['angkake', 'Kata dari angka']
+  ]},
+  { icon: 'brain', title: 'AI CHAT (16)', pairs: [
+    ['ai | aichat', 'Chat AI general (banyak model)'],
+    ['aigpt', 'Chat pakai model GPT'],
+    ['aiclaude', 'Chat pakai Claude'],
+    ['aigemini', 'Chat pakai Gemini'],
+    ['ailama | aimistral | aipro', 'Chat model Llama/Mistral/Pro'],
+    ['aicoding', 'Bantu coding/AI developer'],
+    ['aimath', 'Selesaikan soal matematika'],
+    ['ailogic', 'Latihan logika'],
+    ['aicerita', 'Bikin cerita kreatif'],
+    ['aifakta', 'Fakta menarik dari AI'],
+    ['aistyle', 'Gaya tulisan beda'],
+    ['aiquote | aipuisi', 'Quote/puisi otomatis']
+  ]},
+  { icon: 'dice', title: 'GAME (30)', pairs: [
+    ['dadu | roll', 'Lempar dadu'],
+    ['slot | slots', 'Mesin slot'],
+    ['spin | roda', 'Putar roda keberuntungan'],
+    ['rps | suit', 'Batu-gunting-kertas'],
+    ['tictactoe | ttt', 'Tic-tac-toe'],
+    ['tebakangka', 'Tebak angka'],
+    ['tebakbuah | tebakhewan | tebaktebakan', 'Teka-teki tebak'],
+    ['tebakgambar | tebakemoji', 'Tebak gambar/emoji'],
+    ['tebaklirik | tebakjodoh', 'Tebak lirik / jodoh'],
+    ['kuis | k', 'Kuis umum'],
+    ['kuismtk | kuisipa | kuisips | kuisagama', 'Kuis per mapel'],
+    ['hangman | gantungan', 'Hangman'],
+    ['susunkata', 'Susun kata'],
+    ['ngerand | randomangka', 'Angka acak'],
+    ['pilihkan | chooser', 'Pilihkan satu dari pilihan'],
+    ['kotakajaib', 'Bola 8 ajaib (jawab ya/tidak)'],
+    ['mining | hunting | fishing | treasure', 'Game tambang/berburu/mancing'],
+    ['petualangan | rpg', 'Petualangan RPG'],
+    ['tesingatan', 'Tes ingatan memori'],
+    ['togel | gacor', 'Ramalan angka']
+  ]},
+  { icon: 'wrench', title: 'TOOLS & CEK (46)', pairs: [
+    ['cekip | myip', 'Cek IP publik'],
+    ['cekwa', 'Cek nomor WhatsApp aktif'],
+    ['ceknohp', 'Cek operator/kartu nomor'],
+    ['cekpulsa | cekmb', 'Cek pulsa/kuota (info umum)'],
+    ['ciri kartu (ceksim)', 'Cek SIM/kartu'],
+    ['cekcuaca', 'Cek cuaca kota'],
+    ['cekgempa', 'Info gempa terbaru BMKG'],
+    ['cekkiblat', 'Arah kiblat'],
+    ['ceksholat', 'Jadwal sholat'],
+    ['cekhari | cektanggal | cekjam | cekkalender', 'Waktu & kalender'],
+    ['cekzodiak | cekshio', 'Zodiak & shio'],
+    ['cekkhodam | cekjodoh | cekhari', 'Cek khodam/jodoh/hari lahir'],
+    ['ceknama', 'Arti nama'],
+    ['cekharta | cekrezeki', 'Cek rezeki/harta (fun)'],
+    ['cekdomain', 'Info domain'],
+    ['kalkulator | calc', 'Hitung matematika'],
+    ['password', 'Buat password acak'],
+    ['base64 | biner | heksa | romawi', 'Konversi format angka'],
+    ['panjang | wordcount', 'Hitung karakter/kata'],
+    ['stiker', 'Buat stiker (alias)'],
+    ['simg | toimg', 'Stiker gambar/video'],
+    ['tt | ig | fb | mp3 | lirik', 'Download & lirik (shortcut)'],
+    ['fakedana | fakeff', 'Fake nominal dana/FF'],
+    ['iqc', 'Tes IQ'],
+    ['rvo', 'Baca pesan view once'],
+    ['detik | berita', 'Berita terbaru'],
+    ['owner | dev | info | ping | menu', 'Info & status bot']
+  ]},
+  { icon: 'music', title: 'MUSIC (15)', pairs: [
+    ['play | putar', 'Putar/nge-stream lagu dari YouTube'],
+    ['musik | videoklip', 'Cari lagu/video klip'],
+    ['tunelagu', 'Cari dari lirik (tune)'],
+    ['chord', 'Chord gitar'],
+    ['not', 'Not angka'],
+    ['karaoke', 'Karaoke/lirik jalan'],
+    ['nightcore | slowed | reverb | speed', 'Efek audio dinamis'],
+    ['remix | beatbox | rap', 'Bikin remix/beatbox/rap']
+  ]},
+  { icon: 'book-open', title: 'EDUKASI (15)', pairs: [
+    ['matematika | rumus', 'Rumus MTK'],
+    ['fisika | kimia | biologi', 'Materi sains'],
+    ['sejarah', 'Fakta sejarah'],
+    ['ejaan | sinonim | terjemah', 'Bahasa Indonesia & translate'],
+    ['bahasa', 'Tips bahasa'],
+    ['coding | webdev | softskill', 'Belajar coding & skill'],
+    ['panduan', 'Panduan pakai bot']
+  ]},
+  { icon: 'star', title: 'ISLAMI (14)', pairs: [
+    ['doa', 'Kumpulan doa'],
+    ['dzikir | wirid | istighfar', 'Dzikir & istighfar'],
+    ['asmaulhusna', '99 Asmaul Husna'],
+    ['rukunislam | rukuniman', 'Rukun Islam & Iman'],
+    ['niatwudhu | niatpuasa | niatmandi', 'Niat ibadah']
+  ]},
+  { icon: 'sparkles', title: 'PRIMBON (10)', pairs: [
+    ['ramaljodoh | ramalcinta', 'Ramalan jodoh/cinta'],
+    ['ramalkarir | ramalnasib | ramalrezeki', 'Ramalan karir/nasib/rezeki'],
+    ['ramaltanggal | ramalwarna', 'Ramalan tanggal/warna'],
+    ['weton', 'Cek weton'],
+    ['artimimpi', 'Tafsir mimpi']
+  ]},
+  { icon: 'shapes', title: 'RANDOM & HIBURAN (19)', pairs: [
+    ['pantun | gombalan | lelucon | katabijak', 'Pembuka/teks lucu'],
+    ['quote | fakta', 'Kutipan & fakta unik'],
+    ['meme', 'Random meme'],
+    ['kucing | anjing | randomfoto', 'Foto random binatang'],
+    ['waifu | neko | megumin | shinobu', 'Foto anime'],
+    ['nama', 'Nama acak'],
+    ['randomkata | randomwarna | uuid', 'Kata/warna/UUID acak']
+  ]},
+  { icon: 'sliders', title: 'GROUP & OWNER', pairs: [
+    ['sg | selectgroup | pilihgrup', 'Pilih grup yang dipantau'],
+    ['grouplist | gl | monitor', 'Lihat semua grup'],
+    ['kick | add', 'Kelola anggota'],
+    ['addadmin | deladmin', 'Promote/demote admin'],
+    ['setname | setdesc | setpp', 'Ubah nama/deskripsi/PP grup'],
+    ['totag | hidetag', 'Tag semua anggota'],
+    ['leave', 'Keluar grup'],
+    ['public | self', 'Mode bot'],
+    ['setbio | setnamebot', 'Ubah bio & nama bot'],
+    ['addowner | delowner', 'Kelola owner bot']
+  ]},
+  { icon: 'store', title: 'SEWA BOT', pairs: [
+    ['.sewa', 'Mulai sewa bot (user chat ke admin bot)'],
+    ['.verify', 'Konfirmasi pembayaran'],
+    ['.bayar', 'Info pembayaran'],
+    ['62xxxxxxxxxx', 'Kirim nomor HP untuk pairing']
+  ]}
 ]
 
 content = `
 <div class="space-y">
     <div class="flex-bt">
-        <h2 class="title-stroke" style="font-size:26px"><i class="fas fa-book open"></i> Panduan Fitur Bot</h2>
+        <h2 class="title-stroke" style="font-size:26px"><i class="fas fa-book"></i> Panduan Fitur Bot</h2>
         <a href="/admin/bots" class="btn-brutal btn-brutal-sm btn-blue"><i class="fas fa-robot"></i> Manage Bots</a>
     </div>
     <div class="card-brutal">
         <h3 class="card-title"><i class="fas fa-info-circle"></i> Cara Pakai Bot</h3>
         <ol style="line-height:2;padding-left:20px" class="muted" style="font-size:14px">
             <li>Start bot dari halaman <b>Bots</b>.</li>
-            <li>Bot minta nomor → input nomor HP di web (tanpa +, contoh <b>628xxx</b>).</li>
-            <li>Pairing code muncul → buka WhatsApp &rarr; <b>Perangkat Tertaut &rarr; Tautkan</b> &rarr; masukin kode.</li>
+            <li>Bot minta nomor &rarr; input nomor HP di web (tanpa +, contoh <b>628xxx</b>).</li>
+            <li>Pairing code muncul &rarr; buka WhatsApp &rarr; <b>Perangkat Tertaut &rarr; Tautkan</b> &rarr; masukkan kode.</li>
             <li>Status jadi <b>Connected</b> &rarr; bot siap dipakai.</li>
             <li>Kirim perintah di DM/grup, contoh <b>.ping</b> atau <b>.menu</b>.</li>
         </ol>
-        <p class="muted mt-16">Semua bot sudah punya plugin <b>jimp</b> (stiker/gambar) dan database lengkap &mdash; tanpa error.</p>
+        <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+            <span class="badge badge-yellow">438 perintah unik</span>
+            <span class="badge badge-blue">serentak di 50 bot</span>
+            <span class="badge badge-green">470+ file plugin</span>
+        </div>
     </div>
-    ${sections.map(s => `
+    ${CATS.map(s => `
     <div class="card-brutal">
         <h3 class="card-title"><i class="fas fa-${s.icon}"></i> ${s.title}</h3>
         <div class="table-wrap">
             <table class="b-brutal">
-                <thead><tr><th style="width:220px">Perintah</th><th>Fungsi</th></tr></thead>
+                <thead><tr><th style="width:260px">Perintah (tanpa titik/alias)</th><th>Fungsi</th></tr></thead>
                 <tbody>
-                ${s.commands.map(c => `<tr><td><code style="background:#eceade;padding:2px 8px;font-weight:700">${c[0]}</code></td><td>${c[1]}</td></tr>`).join('')}
+                ${s.pairs.map(p => `<tr><td><code style="background:#eceade;padding:2px 8px;font-weight:700">.${p[0]}</code></td><td>${p[1]}</td></tr>`).join('')}
                 </tbody>
             </table>
         </div>
     </div>`).join('')}
+    <div class="card-brutal">
+        <h3 class="card-title"><i class="fas fa-robot"></i> Semua Fitur di Semua Bot</h3>
+        <p class="muted">Semua bot (Bot1 &ndash; Bot50) punya paket fitur <b>identik</b>. Fitur baru cukup ditambah di <b>Bot1/plugins</b> lalu panel (server.js) otomatis menyelaraskan ke semua bot saat boot.</p>
+    </div>
 </div>
 `
 %>

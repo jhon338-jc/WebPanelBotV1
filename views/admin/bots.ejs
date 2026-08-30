@@ -23,6 +23,7 @@
 
                     <div class="space-y" style="gap:8px">
                         <p class="muted"><i class="fas fa-clock"></i> ${bot.last_active ? new Date(bot.last_active).toLocaleString('id-ID') : '-'}</p>
+                        <p class="muted"><i class="fas fa-store"></i> Pemilik: ${bot.owner ? '@' + bot.owner : '<span class="badge badge-gray">ADMIN</span>'}</p>
                     </div>
 
                     ${bot.pairingCode ? `

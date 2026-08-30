@@ -29,6 +29,20 @@
             </div>
             <div class="stat-icon" style="background:#7bf1a8"><i class="fas fa-wifi"></i></div>
         </div>
+        <div class="card-brutal stat-card flex-bt">
+            <div>
+                <p class="stat-label">Seller Aktif</p>
+                <p class="stat-value" style="color:#b388eb">${stats.sellerCount}</p>
+            </div>
+            <div class="stat-icon" style="background:#b388eb"><i class="fas fa-store"></i></div>
+        </div>
+        <div class="card-brutal stat-card flex-bt">
+            <div>
+                <p class="stat-label">Pendapatan Sewa</p>
+                <p class="stat-value" style="color:#06a77d;font-size:24px">${'Rp ' + Number(stats.revenue || 0).toLocaleString('id-ID')}</p>
+            </div>
+            <div class="stat-icon" style="background:#ffb703"><i class="fas fa-coins"></i></div>
+        </div>
     </div>
 
     <div class="card-brutal">

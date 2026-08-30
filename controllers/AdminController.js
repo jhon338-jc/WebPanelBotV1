@@ -32,6 +32,12 @@ export class AdminController {
                 activeBots: Bot.getActiveBots(),
                 runningBots: Bot.getRunningBots()
             }
+            const { listSellers } = await import('../utils/sellers.js')
+            const { readSewa, PAKET } = await import('../database/sewa.js')
+            stats.sellerCount = listSellers().length
+            stats.revenue = readSewa().transaksi
+                .filter(t => t.status === 'aktif' || t.status === 'expired')
+                .reduce((sum, t) => sum + (PAKET[t.paket]?.harga || 0), 0)
             const os = await import('os')
             const systemInfo = {
                 platform: os.platform(),
