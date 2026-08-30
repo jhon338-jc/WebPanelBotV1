@@ -1,32 +1,35 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # =====================================================
-#  Jhon338 Panel - Generator Link Publik
-#  Pilihan tunnel:
-#   1) Cloudflare  -> https://xxx.trycloudflare.com (random)
-#   2) LocalTunnel -> https://<subdomain>.loca.lt   (custom)
-#  LOCAL TUNNEL TIDAK SUPPORT DI TERMUX ANDROID
-#  (pakai openurl yang error "Unsupported platform: android")
-#  LocalTunnel hanya jalan di Linux/VPS.
-#  Cara pakai:  bash termux/start-panel.sh
+#  Jhon338 Panel - Jalankan di LOCALHOST (khusus admin)
+#  Tanpa tunnel. Admin akses via browser di HP/PC yang
+#  sama (localhost). Untuk VPS/Linux bisa HOST=0.0.0.0.
+#
+#  Alur bisnis:
+#    User yang mau sewa cukup CHAT ke bot admin (Bot1)
+#    dengan .sewa -> bayar -> kirim nomor/permintaan.
+#    Semua data masuk otomatis ke web panel. Admin lalu
+#    on-boarding manual (pairing/aktifkan bot) di panel.
+#
+#  Pakai:  bash termux/start-panel.sh
 # =====================================================
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 PORT="${PORT:-3000}"
+HOST="${HOST:-127.0.0.1}"
 LOG_DIR="$ROOT/logs"
 mkdir -p "$LOG_DIR"
 
-# Warna
 R="\e[31m"; G="\e[32m"; Y="\e[33m"; C="\e[36m"; B="\e[1m"; N="\e[0m"
 
-trap 'kill $PANEL_PID 2>/dev/null; [ -n "$TUN_PID" ] && kill $TUN_PID 2>/dev/null; echo ""; echo "[x] Panel dihentikan."' INT TERM EXIT
+trap 'kill $PANEL_PID 2>/dev/null; echo ""; echo -e "${R}[x]${N} Panel dihentikan."' INT TERM EXIT
 
 echo "======================================================"
-echo -e "  ${B}Jhon338 Panel - Link Generator${N}"
+echo -e "  ${B}Jhon338 Panel - Localhost${N}"
 echo "======================================================"
 
-# 1) Pastikan .env sudah dibuat
+# 1) Pastikan .env sudah ada
 if [ ! -f .env ]; then
     echo -e "${Y}[!]${N} .env belum ada. Jalankan setup dulu:  bash setup.sh"
     exit 1
@@ -38,114 +41,45 @@ if [ ! -d node_modules ]; then
     exit 1
 fi
 
-# 3) Deteksi platform
-if [ -d /data/data/com.termux ]; then
-    IS_TERMUX=1
-else
-    IS_TERMUX=0
-fi
-
-# 4) Pilih tunnel (default: Cloudflare)
-echo -e "Pilih tunnel:"
-echo -e "  1) Cloudflare   (link acak https://xxx.trycloudflare.com)  [default]"
-echo -e "  2) LocalTunnel  (link custom https://<subdomain>.loca.lt)"
-printf "Pilihan [1/2] (default: 1): "
-read -r CHOICE
-CHOICE="${CHOICE:-1}"
-
-case "$CHOICE" in
-    2) TUNNEL="localtunnel" ;;
-    1) TUNNEL="cloudflare" ;;
-    *) TUNNEL="cloudflare" ;;
-esac
-
-# 5) LocalTunnel tidak support di Termux Android
-if [ "$TUNNEL" = "localtunnel" ]; then
-    echo ""
-    if [ "$IS_TERMUX" = "1" ] && [ -z "$ALLOW_LT" ]; then
-        echo -e "${R}[!]${N} LocalTunnel TIDAK SUPPORT di Android/Termux."
-        echo "    Error: Unsupported platform: android (openurl)."
-        echo "    Gunakan opsi 1 (Cloudflare) di Termux."
-        echo "    LocalTunnel hanya untuk Linux/VPS."
-        echo ""
-        echo "    (Untuk paksa di Linux/VPS saja, set: ALLOW_LT=1)"
-        exit 1
-    fi
-
-    # Subdomain custom (hanya bila lolos, mis. Linux/VPS)
-    LT_SUB="${LT_SUBDOMAIN:-jhon338-panel}"
-    printf "Subdomain yang diinginkan (default: %s): " "$LT_SUB"
-    read -r CK
-    [ -n "$CK" ] && LT_SUB="$CK"
-
-    if ! command -v lt >/dev/null 2>&1; then
-        echo -e "${R}[!]${N} localtunnel belum terpasang."
-        echo "    Install:  npm install -g localtunnel"
-        exit 1
-    fi
-    TUN_CMD="lt --port $PORT --subdomain $LT_SUB"
-else
-    # 6) Cloudflare
-    if ! command -v cloudflared >/dev/null 2>&1; then
-        echo -e "${R}[!]${N} cloudflared belum terpasang."
-        echo "    Install:  pkg install cloudflared"
-        echo "    atau   :  npm install -g cloudflared"
-        exit 1
-    fi
-    TUN_CMD="cloudflared tunnel --url http://localhost:$PORT"
-fi
-
-# 7) Hentikan server lama yang mungkin port $PORT terpakai
+# 3) Hentikan server lama yang mungkin port $PORT terpakai
 if command -v fuser >/dev/null 2>&1; then
-    if fuser -k $PORT/tcp >/dev/null 2>&1; then
-        echo -e "${Y}[i]${N} Proses lama di port $PORT dihentikan ..."
-        sleep 2
-    fi
+    fuser -k $PORT/tcp >/dev/null 2>&1 && echo -e "${Y}[i]${N} Proses lama di port $PORT dihentikan." && sleep 2
 elif command -v lsof >/dev/null 2>&1; then
     if lsof -i :$PORT >/dev/null 2>&1; then
-        echo -e "${Y}[i]${N} Proses lama di port $PORT dihentikan ..."
+        echo -e "${Y}[i]${N} Proses lama di port $PORT dihentikan."
         lsof -ti :$PORT | xargs -r kill -9 2>/dev/null || true
         sleep 2
     fi
-else
-    # Fallback: pkill node server.js
-    if pgrep -f "node server.js" >/dev/null 2>&1; then
-        echo -e "${Y}[i]${N} Proses node server.js lama dihentikan ..."
-        pkill -f "node server.js" 2>/dev/null || true
-        sleep 2
-    fi
+elif pgrep -f "node server.js" >/dev/null 2>&1; then
+    echo -e "${Y}[i]${N} Proses node server.js lama dihentikan."
+    pkill -f "node server.js" 2>/dev/null || true
+    sleep 2
 fi
 
-# 8) Jalankan panel
-echo -e "${C}[*]${N} Menjalankan panel di port $PORT ..."
-node server.js > "$LOG_DIR/panel.out.log" 2>&1 &
+# 4) Jalankan panel
+echo -e "${C}[*]${N} Menjalankan panel di http://${HOST}:${PORT} ..."
+HOST="$HOST" node server.js > "$LOG_DIR/panel.out.log" 2>&1 &
 PANEL_PID=$!
-sleep 4
+sleep 3
 
 if ! kill -0 $PANEL_PID 2>/dev/null; then
     echo -e "${R}[!]${N} Panel gagal jalan. Cek log: cat $LOG_DIR/panel.out.log"
     exit 1
 fi
-echo -e "${G}[+]${N} Panel aktif (PID $PANEL_PID)"
 
-# 9) Buka tunnel terpilih
-echo -e "${C}[*]${N} Membuka tunnel $TUNNEL ..."
 echo ""
 echo "======================================================"
-if [ "$TUNNEL" = "cloudflare" ]; then
-    echo -e "  ${B}PRINT LINK DI BAWAH INI UNTUK DIBAGIKAN:${N}"
-    echo -e "  ${B}https://xxxxxxxx.trycloudflare.com${N}"
-else
-    echo -e "  ${B}LINK PANEL:${N}  https://$LT_SUB.loca.lt"
-    echo -e "  ${Y}Jika subdomain $LT_SUB sudah dipakai orang, gunakan yang lain.${N}"
+echo -e "  ${B}PANEL AKTIF (PID $PANEL_PID)${N}"
+echo -e "  ${G}Buka di browser perangkat ini:${N}  http://localhost:${PORT}"
+if [ "$HOST" = "0.0.0.0" ]; then
+    LAN_IP="$( (hostname -I 2>/dev/null || ip addr show 2>/dev/null) | grep -oE '192\.168\.[0-9]+\.[0-9]+' | head -1 )"
+    [ -n "$LAN_IP" ] && echo -e "  ${Y}Dari perangkat WiFi sama:${N}        http://${LAN_IP}:${PORT}"
 fi
-echo "======================================================"
-echo "  Simpan URL itu -> bagikan ke siapa saja."
-echo "  Tekan  Ctrl+C  untuk menutup panel & tunnel."
-echo "======================================================"
 echo ""
+echo -e "  ${C}CATATAN:${N} Panel ini KHUSUS ADMIN. TIDAK perlu link publik."
+echo -e "  User yang mau sewa cukup chat ke bot admin (Bot1)"
+echo -e "  -> .sewa -> bayar -> kirim nomor. Datanya masuk ke sini."
+echo -e "  Tekan ${B}Ctrl+C${N} untuk berhenti."
+echo "======================================================"
 
-# 10) Jalankan tunnel & tunggu Ctrl+C
-$TUN_CMD &
-TUN_PID=$!
-wait $TUN_PID
+wait $PANEL_PID 2>/dev/null

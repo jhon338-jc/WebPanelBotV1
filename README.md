@@ -20,13 +20,12 @@ start/stop/pairing/log, lengkap dengan statistik sistem.
 ### 1. Install Termux + dependencies
 ```bash
 pkg update -y && pkg upgrade -y
-pkg install nodejs-lts git cloudflared -y
+pkg install nodejs-lts git -y
 ```
-Jika `cloudflared` tidak ada di repo Termux:
+Opsional (stiker video/convert):
 ```bash
-npm install -g cloudflared
+pkg install -y ffmpeg imagemagick libwebp
 ```
-> LocalTunnel (opsi 2) tidak perlu diinstall di Termux — tidak support Android.
 
 ### 2. Clone & setup
 ```bash
@@ -52,20 +51,20 @@ Untuk kebutuhan stiker *video / convert* di Termux:
 pkg install -y ffmpeg imagemagick libwebp
 ```
 
-### 3. Jalankan panel + generate link
+### 3. Jalankan panel (LOCALHOST - khusus admin)
 ```bash
 bash termux/start-panel.sh
 ```
-Skrip menampilkan pilihan tunnel:
-- **1. Cloudflare** — link acak `https://xxx.trycloudflare.com` (default)
-- **2. LocalTunnel** — link custom, **TIDAK support di Termux (Android)**
+Panel otomatis aktif di **http://localhost:3000** (bind `127.0.0.1`).
+- **Tanpa link publik/tunnel** — hanya bisa diakses perangkat yang sama (admin).
+- Untuk VPS/Linux agar perangkat lain di jaringan yang sama bisa akses: `HOST=0.0.0.0 bash termux/start-panel.sh`
+- Tekan `Ctrl+C` untuk menghentikan panel.
 
-> ⚠️ LocalTunnel error `Unsupported platform: android` di Termux. Pakai opsi **1 (Cloudflare)**.
-> Opsi 2 hanya jalan di Linux/VPS (set `ALLOW_LT=1` bila perlu).
-
-**Bagikan link itu jika ingin mengakses dari HP / perangkat lain** — lalu login dengan
-username `JHON338` dan PIN yang sudah diset.
-Tekan `Ctrl+C` untuk menghentikan panel & tunnel.
+> **Alur bisnis sewa/menjadi bot:** user cukup chat ke **bot admin (Bot1)** di
+> WhatsApp → kirim `.sewa` → bayar ke rekening yang ditampilkan → kirim nomor
+> HP/permintaan. Semua data otomatis tercatat di web panel (`/admin/sewa`).
+> Admin lalu **menambahkan user secara manual** (buat akun seller / tugaskan bot /
+> pairing) sesuai kebutuhan — tidak ada pendaftaran publik.
 
 ## Login Admin
 - Login admin: **Username:** `JHON338` · **PIN:** `030308` → panel `/admin`
@@ -83,7 +82,7 @@ Tekan `Ctrl+C` untuk menghentikan panel & tunnel.
 server.js            # panel Express + Socket.IO
 controllers/ models/ routes/ managers/ middleware/  # logika aplikasi
 bots/Bot1..Bot50     # source bot WhatsApp (Bot11-50 dibuat otomatis setup.sh)
-termux/start-panel.sh# generat link Cloudflare Tunnel
+termux/start-panel.sh# menjalankan panel di localhost
 landing-page/        # halaman statis untuk Vercel (repo terpisah: Panel-Web-Bot)
 ```
 

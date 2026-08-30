@@ -1,15 +1,18 @@
-# Menjalankan Panel + Bot di Termux & Membagikan Link ke Orang Lain
+# Menjalankan Panel + Bot di Termux (LOCALHOST - khusus admin)
+
+> Panel ini TIDAK pakai tunnel/link publik. Hanya admin yang mengakses
+> lewat browser di perangkat yang sama (localhost).
 
 ## 1. Install Termux + dependencies
 
 ```bash
 pkg update -y && pkg upgrade -y
-pkg install nodejs-lts git cloudflared -y
+pkg install nodejs-lts git -y
 ```
 
-Jika `cloudflared` tidak tersedia di repo Termux, install lewat npm:
+Opsional (stiker video / convert file media):
 ```bash
-npm install -g cloudflared
+pkg install -y ffmpeg imagemagick libwebp
 ```
 
 ## 2. Install proyek panel
@@ -17,39 +20,43 @@ npm install -g cloudflared
 ```bash
 # salin/scp folder BotPanel ke Termux, atau clone dari git:
 cd ~
-git clone https://github.com/jhon338-jc/Panel-Web-Bot.git
-cd Panel-Web-Bot
+git clone https://github.com/jhon338-jc/WebPanelBotV1.git
+cd WebPanelBotV1
 npm install
+bash setup.sh
 ```
 
-> Catatan: folder `bots/` berisi bot WhatsApp lengkap (dengan `node_modules` botnya).
-> Pastikan folder `bots/Bot1` s.d. `Bot10` ikut terbawa ketika dipindah ke Termux.
+> Catatan: folder `bots/` berisi bot WhatsApp lengkap. `setup.sh` membuat
+> shared `bots/node_modules`, lalu symlink ke Bot1 s.d. Bot50.
 
-## 3. Jalankan panel + tunnel (satu perintah)
+## 3. Jalankan panel (localhost)
 
 ```bash
-cd ~/Panel-Web-Bot
+cd ~/WebPanelBotV1
 bash termux/start-panel.sh
 ```
 
-Skrip akan:
-1. Menjalankan `server.js` (panel) di port 3000
-2. Membuka tunnel Cloudflare
-3. Menampilkan URL publik seperti: `https://random-xxx.trycloudflare.com`
+- Panel aktif di **http://localhost:3000** (bind `127.0.0.1`).
+- Tidak ada URL publik. Perangkat lain di luar jaringan TIDAK bisa mengakses.
+- Untuk VPS/Linux agar perangkat lain dalam 1 jaringan bisa akses:
+  `HOST=0.0.0.0 bash termux/start-panel.sh`
+- Tekan `Ctrl+C` untuk berhenti.
 
-**Bagikan URL itu ke orang lain.** Mereka akan langsung bisa `login`, `assign bot`,
-`connect`, `lihat log` dan `logout` bot — semuanya lewat browser.
+## 4. Alur bisnis sewa / jadi bot
 
-## 4. Menjaga tetap menyala
-- Jangan tutup Termux / biarkan tetap aktif (lewat `Screen` atau notifikasi, pastikan proses tidak di-kill).
-- Panel dijalankan di background, tunnel berjalan di foreground.
+User tidak login ke panel. Cukup:
+1. Chat ke **bot admin (Bot1)** di WhatsApp
+2. Kirim `.sewa` → pilih paket → bayar ke rekening yang tampil
+3. Kirim nomor HP / permintaan
+4. Transaksi **otomatis tercatat** di panel (`/admin/sewa`)
+5. Admin membuka panel, lalu **menambahkan user secara manual**:
+   buat akun seller baru (menu **Seller**) → tugaskan bot (assign) → pairing bot.
 
-## 5. Perbaikan keamanan yang sudah diterapkan di server.js
-- `app.set('trust proxy', 1)` → HTTPS dari Cloudflare Tunnel dikenali benar.
-- `server.listen(PORT, '0.0.0.0')` → bisa diakses dari jaringan luar / tunnel.
+## 5. Menjaga tetap menyala
+- Jangan tutup Termux. Gunakan modul lewat layar
+  (`Termux-wake-lock`, atau screen) agar proses tidak di-kill.
 
-## Catatan penting
-- URL `trycloudflare.com` **berubah setiap restart**. Untuk URL permanen, buat
-  named tunnel di dashboard Cloudflare dengan domainmu sendiri.
-- Gunakan password login yang kuat, karena halaman panel kini dapat diakses publik.
-- Jangan expose folder `bots/` atau `database/panel.json` ke publik (sudah dijaga oleh server).
+## Catatan
+- Keamanan lebih ketat dibanding versi tunnel: panel hanya `127.0.0.1`.
+- Gunakan password login yang kuat (Settings → ganti PIN).
+- Jangan expose folder `bots/` atau `database/` ke publik (sudah dijaga server).

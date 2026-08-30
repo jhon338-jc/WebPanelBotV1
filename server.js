@@ -34,9 +34,6 @@ const app = express()
 const server = http.createServer(app)
 const io = new SocketIO(server)
 
-// Percaya proxy (Cloudflare Tunnel, ngrok, dll) agar req.secure terisi benar saat HTTPS dari luar
-app.set('trust proxy', 1)
-
 app.use(helmet({ contentSecurityPolicy: false }))
 app.use(compression())
 app.use(morgan('combined', { stream: { write: m => logger.info(m.trim()) } }))
@@ -127,6 +124,9 @@ sewaManager.on('bot-starting', (data) => io.to('admin').emit('sewa-event', { typ
 sewaManager.on('notification-added', (data) => io.to('admin').emit('sewa-event', { type: 'pairing-code', ...data }))
 
 const PORT = config.port
-server.listen(PORT, '0.0.0.0', () => {
-    logger.info(`Panel running on http://localhost:${PORT}`)
+// Localhost by default: panel khusus admin. Set HOST=0.0.0.0 jika ingin diakses
+// perangkat lain dalam satu jaringan (mis. VPS / WiFi yang sama).
+const HOST = process.env.HOST || '127.0.0.1'
+server.listen(PORT, HOST, () => {
+    logger.info(`Panel running on http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`)
 })

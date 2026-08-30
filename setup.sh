@@ -39,18 +39,8 @@ else
     echo "[i] bots/node_modules sudah ada lengkap (pino terdeteksi), skip."
 fi
 
-# 2b) Install localtunnel (link custom) - opsional, HANYA untuk Linux/VPS
-#     LocalTunnel pakai openurl yang error "Unsupported platform: android" di Termux.
-if [ -d /data/data/com.termux ] || ! command -v lt >/dev/null 2>&1; then
-    if [ -d /data/data/com.termux ]; then
-        echo "[i] LocalTunnel dilewati (tidak support Android/Termux)."
-        echo "    Panel akan pakai Cloudflare: bash termux/start-panel.sh"
-    elif command -v lt >/dev/null 2>&1; then
-        echo "[i] LocalTunnel sudah terpasang, skip."
-    else
-        echo "[i] LocalTunnel dilewati. Panel tetap pakai Cloudflare."
-    fi
-fi
+# 2b) Catatan tunnel tidak digunakan lagi - panel berjalan LOCALHOST (khusus admin).
+#     Tidak butuh cloudflared / localtunnel. User sewa cukup chat ke bot admin (Bot1).
 
 # 2c) Auto-copy Bot1 -> Bot11..Bot50 (jika belum ada)
 #     50 bot terdukung. Folder hanya berisi Bot1..Bot10 di repo, sisanya di-copy.
@@ -191,5 +181,6 @@ done
 echo ""
 echo "================================================"
 echo "  Setup selesai!"
-echo "  Jalankan panel + buka link:  bash termux/start-panel.sh"
+echo "  Jalankan panel:              bash termux/start-panel.sh"
+echo "  Buka di browser:             http://localhost:3000"
 echo "================================================"
