@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { initSewa } from './sewa.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -21,6 +22,7 @@ export function initDatabase() {
         fs.writeFileSync(DB_PATH, JSON.stringify(defaultDB, null, 2))
         console.log('[DB] Database created at', DB_PATH)
     }
+    initSewa()
     return DB_PATH
 }
 

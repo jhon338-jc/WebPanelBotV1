@@ -1,0 +1,160 @@
+<div class="space-y">
+    <div class="grid-stats">
+        <div class="card-brutal stat-card">
+            <div class="flex-bt">
+                <span class="stat-label">Total Transaksi</span>
+                <span class="stat-icon" style="background:#8ecae6"><i class="fas fa-receipt"></i></span>
+            </div>
+            <div class="stat-value"><%= stats.total %></div>
+        </div>
+        <div class="card-brutal stat-card">
+            <div class="flex-bt">
+                <span class="stat-label">Bot Aktif</span>
+                <span class="stat-icon" style="background:#7bf1a8"><i class="fas fa-robot"></i></span>
+            </div>
+            <div class="stat-value"><%= stats.aktif %></div>
+        </div>
+        <div class="card-brutal stat-card">
+            <div class="flex-bt">
+                <span class="stat-label">Menunggu Verifikasi</span>
+                <span class="stat-icon" style="background:#ffd166"><i class="fas fa-hourglass-half"></i></span>
+            </div>
+            <div class="stat-value"><%= stats.menungguVerifikasi + stats.menungguPembayaran + stats.menungguNomor %></div>
+        </div>
+        <div class="card-brutal stat-card">
+            <div class="flex-bt">
+                <span class="stat-label">Expired</span>
+                <span class="stat-icon" style="background:#ff8fa3"><i class="fas fa-clock"></i></span>
+            </div>
+            <div class="stat-value"><%= stats.expired %></div>
+        </div>
+        <div class="card-brutal stat-card">
+            <div class="flex-bt">
+                <span class="stat-label">Pendapatan</span>
+                <span class="stat-icon" style="background:#ffb703"><i class="fas fa-coins"></i></span>
+            </div>
+            <div class="stat-value" style="font-size:26px">Rp <%= stats.revenue.toLocaleString('id-ID') %></div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card-brutal">
+            <div class="card-title"><i class="fas fa-box-open"></i> Paket Sewa</div>
+            <div class="space-y" style="gap:12px">
+                <% for (const p of Object.values(PAKET)) { %>
+                <div class="bot-mini" style="text-align:left;display:flex;align-items:center;justify-content:space-between">
+                    <div>
+                        <div class="bot-name"><%= p.nama %> <% if (p.durasi_hari === 0) { %><span class="badge badge-purple">PERMANEN</span><% } %></div>
+                        <div class="muted mt-8"><%= p.fitur %> • <%= p.durasi_hari > 0 ? p.durasi_hari + ' hari' : 'selamanya' %></div>
+                    </div>
+                    <span class="badge badge-yellow">Rp <%= p.harga.toLocaleString('id-ID') %></span>
+                </div>
+                <% } %>
+            </div>
+        </div>
+        <div class="card-brutal">
+            <div class="card-title"><i class="fas fa-memory"></i> Ketersediaan Bot (2-50)</div>
+            <div class="row">
+                <% for (const b of botAvailability) { %>
+                <span class="badge <%= b.inUse ? 'badge-purple' : 'badge-green' %>" title="<%= b.folder %>"><%= b.folder.replace('Bot','B') %></span>
+                <% } %>
+            </div>
+            <div class="muted mt-12">Hijau = kosong, Ungu = sedang dipakai sewa. Bot1 khusus admin (tidak dipakai sewa).</div>
+        </div>
+    </div>
+
+    <div class="card-brutal">
+        <div class="card-title"><i class="fas fa-list"></i> Daftar Transaksi</div>
+        <div class="table-wrap">
+            <table class="b-brutal">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User (WA)</th>
+                        <th>Paket</th>
+                        <th>Harga</th>
+                        <th>Bot</th>
+                        <th>Status</th>
+                        <th>Expired</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (transaksi.length === 0) { %>
+                    <tr><td colspan="8" style="text-align:center" class="muted">Belum ada transaksi. User mulai dengan kirim <b>.sewa</b> ke Bot1.</td></tr>
+                    <% } %>
+                    <% for (const t of transaksi) { %>
+                    <tr>
+                        <td><b><%= t.id %></b></td>
+                        <td><%= t.user_wa %></td>
+                        <td><%= t.paketNama %></td>
+                        <td><%= t.hargaFormatted %></td>
+                        <td><%= t.botNama %></td>
+                        <td>
+                            <% const st = t.status; let cls='badge-gray', label=st; %>
+                            <% if (st==='aktif') { cls='badge-green'; label='✓ Aktif' } else if (st==='menunggu_pembayaran') { cls='badge-yellow'; label='Menunggu Bayar' } else if (st==='menunggu_verifikasi') { cls='badge-yellow'; label='Menunggu Verifikasi' } else if (st==='menunggu_nomor') { cls='badge-blue'; label='Menunggu Nomor' } else if (st==='menunggu_pairing') { cls='badge-purple'; label='Menunggu Pairing' } else if (st==='expired') { cls='badge-red'; label='Expired' } else if (st==='batal') { cls='badge-gray'; label='Batal' } %>
+                            <span class="badge <%= cls %>"><%= label %></span>
+                        </td>
+                        <td><%= formatDateTime(t.expired_at) %></td>
+                        <td>
+                            <div class="row">
+                                <% if (t.status === 'menunggu_verifikasi' || t.status === 'menunggu_pembayaran') { %>
+                                <button class="btn-brutal btn-brutal-sm btn-green" onclick="verifySewa('<%= t.id %>')"><i class="fas fa-check"></i> Verify</button>
+                                <% } %>
+                                <% if (t.status === 'aktif' || t.status === 'menunggu_pairing') { %>
+                                <button class="btn-brutal btn-brutal-sm btn-red" onclick="cancelSewa('<%= t.id %>')"><i class="fas fa-ban"></i> Stop</button>
+                                <% } %>
+                                <button class="btn-brutal btn-brutal-sm btn-dark"><%= t.pairing_code || '-' %></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function verifySewa(id) {
+        brutalConfirm({
+            title: 'Verify ' + id,
+            message: 'Konfirmasi pembayaran sudah masuk? Bot akan meminta nomor HP ke user.',
+            confirmText: 'Verify',
+            danger: false,
+            onConfirm: async () => {
+                const r = await fetch('/api/admin/sewa/' + id + '/verify', { method: 'POST' })
+                const d = await r.json()
+                showToast(d.success ? d.message : d.message, d.success ? 'success' : 'error')
+                if (d.success) setTimeout(() => location.reload(), 800)
+            }
+        })
+    }
+
+    function cancelSewa(id) {
+        brutalConfirm({
+            title: 'Stop ' + id,
+            message: 'Hentikan sewa ini sekarang? Bot akan di-stop dan transaksi dibatalkan.',
+            confirmText: 'Stop Sewa',
+            onConfirm: async () => {
+                const r = await fetch('/api/admin/sewa/' + id + '/cancel', { method: 'POST' })
+                const d = await r.json()
+                showToast(d.success ? d.message : d.message, d.success ? 'success' : 'error')
+                if (d.success) setTimeout(() => location.reload(), 800)
+            }
+        })
+    }
+
+    if (typeof io !== 'undefined') {
+        const socket = io({ auth: { token: getToken() } })
+        socket.on('sewa-event', () => {
+            showToast('Perubahan data sewa terdeteksi, refresh...', 'info')
+            setTimeout(() => location.reload(), 1200)
+        })
+    }
+
+    function getToken() {
+        const m = document.cookie.match(/(?:^|;\s*)token=([^;]*)/)
+        return m ? decodeURIComponent(m[1]) : ''
+    }
+</script>

@@ -199,6 +199,13 @@ async function start() {
                     await initPlugins()
                     pluginsLoaded = true
                 }
+                // Bind koneksi ke plugin sewa (untuk kirim notifikasi via Bot1)
+                if (process.cwd().endsWith('Bot1') || process.cwd().endsWith('bot1')) {
+                    try {
+                        const sewaMod = await import('./plugins/sewa.js')
+                        if (sewaMod?.initSewa) sewaMod.initSewa(socket)
+                    } catch (e) {}
+                }
                 console.log('[CONNECTION] Bot tersambung!')
                 await sendGroupListToOwner(socket)
                 return

@@ -67,6 +67,8 @@ else
             cp -r "$ROOT/bots/Bot1" "$B"
             # Hapus auth & database biar bot bersih (wajib pairing ulang)
             rm -rf "$B/auth" "$B/database" "$B/tmp"
+            # Hapus plugin sewa: hanya Bot1 yang jadi bot admin (handle transaksi)
+            rm -f "$B/plugins/sewa.js"
             # Set nama unik per bot di config.json
             if command -v node >/dev/null 2>&1; then
                 node -e "

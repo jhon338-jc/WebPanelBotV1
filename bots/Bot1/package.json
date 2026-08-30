@@ -9,6 +9,7 @@
   "dependencies": {
     "@hapi/boom": "^10.0.1",
     "@whiskeysockets/baileys": "npm:levvleys@latest",
+    "fflate": "^0.8.2",
     "file-type": "^19.0.0",
     "jimp": "^0.22.12",
     "pino": "^8.17.2"

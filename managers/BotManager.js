@@ -56,7 +56,7 @@ export class BotManager extends EventEmitter {
         }
     }
 
-    async startBot(folder) {
+    async startBot(folder, opts = {}) {
         const botPath = path.join(config.botDir, folder)
         
         if (!fs.existsSync(botPath)) {
@@ -70,6 +70,7 @@ export class BotManager extends EventEmitter {
         }
         
         const botInfo = Bot.findByFolder(folder)
+        const ownerNumber = opts.ownerNumber ? String(opts.ownerNumber).replace(/\D/g, '') : ''
 
         const proc = spawn('node', ['index.js'], {
             cwd: botPath,
@@ -78,7 +79,7 @@ export class BotManager extends EventEmitter {
             env: {
                 ...process.env,
                 BOT_FOLDER: folder,
-                BOT_OWNER_NUMBER: ''
+                BOT_OWNER_NUMBER: ownerNumber
             }
         })
         proc.unref()
@@ -89,7 +90,8 @@ export class BotManager extends EventEmitter {
             pairingCode: null,
             connected: false,
             waitingInput: false,
-            pid: proc.pid
+            pid: proc.pid,
+            sewaOwner: ownerNumber
         }
         
         this.bots.set(folder, botData)

@@ -12,6 +12,7 @@ import { fileURLToPath } from 'url'
 import { config } from './config/config.js'
 import { initDatabase } from './database/init.js'
 import { getBotManager } from './managers/BotManager.js'
+import { getSewaManager } from './managers/SewaManager.js'
 import { logger } from './utils/logger.js'
 import { verifyToken } from './utils/helpers.js'
 import { readSettings } from './utils/settings.js'
@@ -21,6 +22,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 initDatabase()
 const botManager = getBotManager()
+const sewaManager = getSewaManager()
 
 const app = express()
 const server = http.createServer(app)
@@ -111,6 +113,12 @@ botManager.on('pairing-code', (data) => {
     io.to(`bot:${data.folder}`).emit('pairing-code', data)
     io.to('admin').emit('pairing-code', data)
 })
+
+// Event sewa -> broadcast ke halaman admin (kotak sewa live)
+sewaManager.on('bot-activated', (data) => io.to('admin').emit('sewa-event', { type: 'activated', ...data }))
+sewaManager.on('bot-expired', (data) => io.to('admin').emit('sewa-event', { type: 'expired', ...data }))
+sewaManager.on('bot-starting', (data) => io.to('admin').emit('sewa-event', { type: 'starting', ...data }))
+sewaManager.on('notification-added', (data) => io.to('admin').emit('sewa-event', { type: 'pairing-code', ...data }))
 
 const PORT = config.port
 server.listen(PORT, '0.0.0.0', () => {

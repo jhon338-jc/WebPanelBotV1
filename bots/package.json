@@ -5,10 +5,11 @@
   "description": "Shared dependencies untuk semua bot (Bot1..Bot10). Di-install setup.sh ke bots/node_modules lalu di-symlink ke tiap bot.",
   "type": "module",
   "dependencies": {
-    "@whiskeysockets/baileys": "npm:levvleys@latest",
     "@hapi/boom": "^10.0.1",
-    "jimp": "0.22.12",
+    "@whiskeysockets/baileys": "npm:levvleys@latest",
+    "fflate": "^0.8.3",
     "file-type": "^19.0.0",
+    "jimp": "0.22.12",
     "pino": "^8.17.2"
   }
 }
