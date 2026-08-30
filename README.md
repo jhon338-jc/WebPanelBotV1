@@ -1,13 +1,14 @@
 # Jhon338 Bot Panel
 
-Panel admin tunggal + 10 bot WhatsApp. Panel privat untuk pemilik, mengelola bot
+Panel admin tunggal + **50 bot WhatsApp**. Panel privat untuk pemilik, mengelola bot
 start/stop/pairing/log, lengkap dengan statistik sistem.
 
 ## Fitur
 - Login admin tunggal (username + PIN)
 - Dashboard statistik bot & info sistem
-- Kelola 10 bot WhatsApp (start, stop, restart, logout)
+- Kelola **50 bot** WhatsApp (start, stop, restart, logout)
 - Pairing / kode pairing otomatis
+- **Sistem sewa bot via chat** (`.sewa` di Bot1) + halaman `/admin/sewa`
 - Log real-time per bot (auto-refresh via Socket.IO)
 - Panduan fitur bot (daftar perintah)
 - Settings: ganti username & PIN
@@ -38,6 +39,9 @@ bash setup.sh
 - Membuat `.env` dari `.env.example`
 - `npm install` untuk panel
 - Membuat **satu** shared `bots/node_modules` dan symlink ke semua bot (hemat ruang)
+- **Auto-copy Bot1 → Bot11..Bot50** (50 bot terdukung, masing-masing nama unik)
+- Pastikan database files tiap bot dibuat
+- Verifikasi Jimp 0.22.12 (sharp opsional, fallback jimp)
 - Kamu bisa edit `.env` untuk ganti `JWT_SECRET` / `SESSION_SECRET`
 
 ### 3. Jalankan panel + generate link
@@ -63,7 +67,7 @@ Tekan `Ctrl+C` untuk menghentikan panel & tunnel.
 ```
 server.js            # panel Express + Socket.IO
 controllers/ models/ routes/ managers/ middleware/  # logika aplikasi
-bots/Bot1..Bot10     # source bot WhatsApp (node_modules di-skip, pakai shared)
+bots/Bot1..Bot50     # source bot WhatsApp (Bot11-50 dibuat otomatis setup.sh)
 termux/start-panel.sh# generat link Cloudflare Tunnel
 landing-page/        # halaman statis untuk Vercel (repo terpisah: Panel-Web-Bot)
 ```

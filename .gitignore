@@ -1,7 +1,9 @@
 # Dependencies
 node_modules/
-bots/*/node_modules/
+bots/node_modules/
+bots/*/node_modules
 bots/*/package-lock.json
+bots/package-lock.json
 
 # Env & secrets
 .env
@@ -15,6 +17,11 @@ npm-debug.log*
 
 # Bot auth/session (paksa pairing ulang setelah clone)
 bots/*/auth/
+
+# Bot hasil generate setup.sh (Bot11..Bot50) - tidak di-commit
+bots/Bot1[1-9]/
+bots/Bot[2-4][0-9]/
+bots/Bot50/
 
 # Bot database/session state
 bots/*/database/

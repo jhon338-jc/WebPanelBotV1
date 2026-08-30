@@ -109,11 +109,371 @@
       "created_at": "2026-08-29T06:46:31.068Z",
       "pid": null,
       "pairingCode": null
+    },
+    {
+      "id": 11,
+      "folder": "Bot11",
+      "name": "Bot11",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.338Z"
+    },
+    {
+      "id": 12,
+      "folder": "Bot12",
+      "name": "Bot12",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.359Z"
+    },
+    {
+      "id": 13,
+      "folder": "Bot13",
+      "name": "Bot13",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.361Z"
+    },
+    {
+      "id": 14,
+      "folder": "Bot14",
+      "name": "Bot14",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.362Z"
+    },
+    {
+      "id": 15,
+      "folder": "Bot15",
+      "name": "Bot15",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.364Z"
+    },
+    {
+      "id": 16,
+      "folder": "Bot16",
+      "name": "Bot16",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.365Z"
+    },
+    {
+      "id": 17,
+      "folder": "Bot17",
+      "name": "Bot17",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.367Z"
+    },
+    {
+      "id": 18,
+      "folder": "Bot18",
+      "name": "Bot18",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.369Z"
+    },
+    {
+      "id": 19,
+      "folder": "Bot19",
+      "name": "Bot19",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.371Z"
+    },
+    {
+      "id": 20,
+      "folder": "Bot20",
+      "name": "Bot20",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.373Z"
+    },
+    {
+      "id": 21,
+      "folder": "Bot21",
+      "name": "Bot21",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.374Z"
+    },
+    {
+      "id": 22,
+      "folder": "Bot22",
+      "name": "Bot22",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.375Z"
+    },
+    {
+      "id": 23,
+      "folder": "Bot23",
+      "name": "Bot23",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.377Z"
+    },
+    {
+      "id": 24,
+      "folder": "Bot24",
+      "name": "Bot24",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.378Z"
+    },
+    {
+      "id": 25,
+      "folder": "Bot25",
+      "name": "Bot25",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.379Z"
+    },
+    {
+      "id": 26,
+      "folder": "Bot26",
+      "name": "Bot26",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.380Z"
+    },
+    {
+      "id": 27,
+      "folder": "Bot27",
+      "name": "Bot27",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.381Z"
+    },
+    {
+      "id": 28,
+      "folder": "Bot28",
+      "name": "Bot28",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.382Z"
+    },
+    {
+      "id": 29,
+      "folder": "Bot29",
+      "name": "Bot29",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.384Z"
+    },
+    {
+      "id": 30,
+      "folder": "Bot30",
+      "name": "Bot30",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.385Z"
+    },
+    {
+      "id": 31,
+      "folder": "Bot31",
+      "name": "Bot31",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.386Z"
+    },
+    {
+      "id": 32,
+      "folder": "Bot32",
+      "name": "Bot32",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.388Z"
+    },
+    {
+      "id": 33,
+      "folder": "Bot33",
+      "name": "Bot33",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.389Z"
+    },
+    {
+      "id": 34,
+      "folder": "Bot34",
+      "name": "Bot34",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.390Z"
+    },
+    {
+      "id": 35,
+      "folder": "Bot35",
+      "name": "Bot35",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.391Z"
+    },
+    {
+      "id": 36,
+      "folder": "Bot36",
+      "name": "Bot36",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.392Z"
+    },
+    {
+      "id": 37,
+      "folder": "Bot37",
+      "name": "Bot37",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.393Z"
+    },
+    {
+      "id": 38,
+      "folder": "Bot38",
+      "name": "Bot38",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.395Z"
+    },
+    {
+      "id": 39,
+      "folder": "Bot39",
+      "name": "Bot39",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.396Z"
+    },
+    {
+      "id": 40,
+      "folder": "Bot40",
+      "name": "Bot40",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.398Z"
+    },
+    {
+      "id": 41,
+      "folder": "Bot41",
+      "name": "Bot41",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.399Z"
+    },
+    {
+      "id": 42,
+      "folder": "Bot42",
+      "name": "Bot42",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.400Z"
+    },
+    {
+      "id": 43,
+      "folder": "Bot43",
+      "name": "Bot43",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.401Z"
+    },
+    {
+      "id": 44,
+      "folder": "Bot44",
+      "name": "Bot44",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.403Z"
+    },
+    {
+      "id": 45,
+      "folder": "Bot45",
+      "name": "Bot45",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.404Z"
+    },
+    {
+      "id": 46,
+      "folder": "Bot46",
+      "name": "Bot46",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.406Z"
+    },
+    {
+      "id": 47,
+      "folder": "Bot47",
+      "name": "Bot47",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.407Z"
+    },
+    {
+      "id": 48,
+      "folder": "Bot48",
+      "name": "Bot48",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.408Z"
+    },
+    {
+      "id": 49,
+      "folder": "Bot49",
+      "name": "Bot49",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.410Z"
+    },
+    {
+      "id": 50,
+      "folder": "Bot50",
+      "name": "Bot50",
+      "status": "stopped",
+      "connected": false,
+      "last_active": null,
+      "created_at": "2026-08-30T11:26:01.411Z"
     }
   ],
   "logs": [],
   "counters": {
-    "bots": 10,
+    "bots": 50,
     "logs": 0
   }
 }

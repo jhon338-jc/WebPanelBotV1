@@ -52,10 +52,41 @@ if [ -d /data/data/com.termux ] || ! command -v lt >/dev/null 2>&1; then
     fi
 fi
 
+# 2c) Auto-copy Bot1 -> Bot11..Bot50 (jika belum ada)
+#     50 bot terdukung. Folder hanya berisi Bot1..Bot10 di repo, sisanya di-copy.
+MAX_BOTS="${MAX_BOTS:-50}"
+echo "[*] Memastikan Bot1..Bot${MAX_BOTS} tersedia (auto-copy bila perlu) ..."
+if [ ! -d "$ROOT/bots/Bot1" ]; then
+    echo "    [!] Bot1 tidak ditemukan. Clone repo ini dulu dengan benar."
+else
+    for i in $(seq 11 "$MAX_BOTS"); do
+        B="$ROOT/bots/Bot$i"
+        if [ -d "$B" ]; then
+            echo "    Bot$i -> sudah ada, skip."
+        else
+            cp -r "$ROOT/bots/Bot1" "$B"
+            # Hapus auth & database biar bot bersih (wajib pairing ulang)
+            rm -rf "$B/auth" "$B/database" "$B/tmp"
+            # Set nama unik per bot di config.json
+            if command -v node >/dev/null 2>&1; then
+                node -e "
+                    const fs = require('fs');
+                    const p = '$B/config.json';
+                    const c = JSON.parse(fs.readFileSync(p, 'utf-8'));
+                    c.botName = 'Jhon338 - Bot$i';
+                    c.ownerName = c.ownerName || 'JhonChenank$i';
+                    fs.writeFileSync(p, JSON.stringify(c, null, 2));
+                "
+            fi
+            echo "    Bot$i -> di-copy dari Bot1 (nama: Jhon338 - Bot$i)"
+        fi
+    done
+fi
+
 # 3) Symlink node_modules tiap bot -> shared
 #    Hapus folder node_modules lama (real) lalu ganti symlink ke shared.
-echo "[*] Setup symlink node_modules untuk Bot1..Bot10 ..."
-for i in $(seq 1 10); do
+echo "[*] Setup symlink node_modules untuk Bot1..Bot${MAX_BOTS} ..."
+for i in $(seq 1 "$MAX_BOTS"); do
     B="$ROOT/bots/Bot$i"
     if [ -d "$B" ]; then
         if [ -L "$B/node_modules" ]; then
@@ -73,37 +104,41 @@ for i in $(seq 1 10); do
 done
 
 # 3b) Pastikan sharp (native image lib untuk Baileys updateProfilePicture) jalan
-#     Sharp butuh binary native sesuai platform. Kalau gagal load, rebuild/install ulang.
+#     Sharp butuh binary native sesuai platform. Kalau gagal load, fallback ke Jimp.
 #     Bot pakai shared bots/node_modules, jadi cukup dipastikan di situ.
+#     Install sharp tidak wajib -> jangan sampai menghentikan setup (set -e).
 echo "[*] Verifikasi library gambar (sharp/jimp) untuk .setpp ..."
-(cd "$ROOT/bots" && node -e "
-try { require('sharp'); process.exit(0); }
-catch { process.exit(1); }
-" )
-if [ $? -eq 0 ]; then
+if (cd "$ROOT/bots" && node -e "try{require('sharp');process.exit(0)}catch{process.exit(1)}" >/dev/null 2>&1); then
     echo "    sharp OK, skip."
+elif [ "${INSTALL_SHARP:-0}" = "1" ]; then
+    echo "    sharp tidak bisa load. Coba install binary native sharp ..."
+    if ( cd "$ROOT/bots" && npm install sharp --legacy-peer-deps --no-audit --no-fund >/dev/null 2>&1 ); then
+        echo "    sharp selesai diinstall."
+    else
+        echo "    [!] sharp gagal diinstall (dilewati). .setpp akan pakai fallback Jimp 0.22.12."
+    fi
 else
-    echo "    sharp tidak bisa load. Install ulang binary native sharp ..."
-    ( cd "$ROOT/bots" && npm rebuild sharp --legacy-peer-deps 2>/dev/null || npm install sharp --legacy-peer-deps --no-audit --no-fund )
-    echo "    sharp selesai diinstall/rebuild."
+    echo "    sharp tidak terpasang (opsional). .setpp pakai fallback Jimp 0.22.12."
+    echo "    (untuk install sharp: INSTALL_SHARP=1 bash setup.sh)"
 fi
 
-(cd "$ROOT/bots" && node -e "
-try { require('jimp'); process.exit(0); }
-catch { process.exit(1); }
-" )
-if [ $? -eq 0 ]; then
+if (cd "$ROOT/bots" && node -e "try{require('jimp');process.exit(0)}catch{process.exit(1)}" >/dev/null 2>&1); then
     echo "    jimp OK."
 else
     echo "    [!] jimp tidak tersedia, install ulang ..."
-    ( cd "$ROOT/bots" && npm install jimp --legacy-peer-deps --no-audit --no-fund )
+    if ( cd "$ROOT/bots" && npm install jimp@0.22.12 --legacy-peer-deps --no-audit --no-fund >/dev/null 2>&1 ); then
+        echo "    jimp selesai diinstall (0.22.12)."
+    else
+        echo "    [!] jimp gagal diinstall! Jalankan ulang npm install di bots/."
+        exit 1
+    fi
 fi
 
 # 4) Auto-create database files tiap bot (jika belum ada)
 #    Folder bots/*/database di-.gitignore, jadi setelah git pull pasti kosong.
 #    Tanpa file ini bot error ENOENT (monitor.json / role.json).
-echo "[*] Pastikan database files ada di Bot1..Bot10 ..."
-for i in $(seq 1 10); do
+echo "[*] Pastikan database files ada di Bot1..Bot${MAX_BOTS} ..."
+for i in $(seq 1 "$MAX_BOTS"); do
     B="$ROOT/bots/Bot$i"
     if [ -d "$B" ]; then
         mkdir -p "$B/database"
